@@ -12,6 +12,7 @@ Usage:
 For example:
 `uv run python src/main.py 03df0d35f7e0efd274cc46387e45da08c358b71ca62bedfdfca10cc9f6482166da@127.0.0.1:9637`
 
-# Tests
+# Contributing
 
-`uv run pytest`
+This project uses pre-commit, install [with these instructions](https://pre-commit.com/#install) then `pre-commit install`.
+Run tests with :`uv run pytest`
