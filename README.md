@@ -1,7 +1,17 @@
 A toy lightning peer.
 
-You may need to do the following on mac:
-`brew install automake pkg-config libtool libffi`
+The goal of this project is to create the lightest-possible-weight lightning peer for testing purposes. This is not verified or audited and should not be used in production.
+
+Written in Python and using [uv](https://docs.astral.sh/uv/) for package management.
+
+A good way to create a demo network is with [polar](https://lightningpolar.com/).
 
 Usage:
-`python3 lmppy.py pubkey@url:port`
+`uv run python src/main.py pubkey@url:port`
+
+For example:
+`uv run python src/main.py 03df0d35f7e0efd274cc46387e45da08c358b71ca62bedfdfca10cc9f6482166da@127.0.0.1:9637`
+
+# Tests
+
+`uv run pytest`
