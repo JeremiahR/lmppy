@@ -1,16 +1,17 @@
-A toy lightning peer.
+# A tiny lightning peer.
 
-The goal of this project is to create the lightest-possible-weight lightning peer for testing purposes. This is not verified or audited and should not be used in production.
+The goal of this project is to create a lightweight lightning network peer for testing purposes. It is not verified or audited and should not be used in production.
 
-Written in Python and using [uv](https://docs.astral.sh/uv/) for package management.
+Written in Python and using [uv](https://docs.astral.sh/uv/) for package management. Implementation based on [lightning bolts](https://github.com/lightning/bolts).
 
-A good way to create a demo network is with [polar](https://lightningpolar.com/).
+# Usage
 
-Usage:
-`uv run python src/main.py pubkey@url:port`
+**Note:** This doesn't work yet.
 
-For example:
-`uv run python src/main.py 03df0d35f7e0efd274cc46387e45da08c358b71ca62bedfdfca10cc9f6482166da@127.0.0.1:9637`
+The user runs the below command to connect to a peer on the lightning network. Such a peer might first come from creating a test network with [polar](https://lightningpolar.com/).
+`uv run python lmp/main.py pubkey@url:port`
+
+This python will handshake and speak lightning to the remote node.
 
 # Contributing
 
