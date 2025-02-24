@@ -8,7 +8,7 @@ def generate_keypair():
     public_key = private_key.verifying_key.to_string()
     return private_key, public_key
 
-def ecdh(private_key, peer_public_key):
+def ecdh(private_key: SigningKey, peer_public_key):
     """Derives a shared secret using ECDH."""
     peer_pub = SigningKey.from_string(peer_public_key, curve=SECP256k1)
     shared_secret = private_key.privkey.secret_multiplier * peer_pub.pubkey.point
