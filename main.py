@@ -1,13 +1,12 @@
-import os
+import argparse
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 
 from ecdsa import SECP256k1, SigningKey
 from pyln.proto.primitives import PrivateKey, PublicKey
 from pyln.proto.wire import connect
-
-LOGGING_DIRECTORY = "log"
 
 LIGHTNING_MESSAGE_TYPES = {
     # Connection & Keepalive
@@ -75,27 +74,31 @@ class Message:
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        prog="lightning-mini-peer",
+        description="A minimal lightning peer for testing and development",
+    )
+    parser.add_argument("host", help="the peer address in pubkey@host:port format")
+    args = parser.parse_args()
+
     if len(sys.argv) < 2:
-        print("Usage: python lmppy.py pubkey@url:port")
+        parser.print_help()
         sys.exit(1)
-    peer = Peer.from_string(sys.argv[1])
+    peer = Peer.from_string(args.host)
 
-    print(f"Host: {peer.host}, Port: {peer.port}, Public Key: {peer.node_id}")
-
-    private_key = SigningKey.generate(curve=SECP256k1)
-    private_key = PrivateKey(private_key.to_string())
-
-    # sock = socket.socket()
-    # sock.connect((peer.host, peer.port))
-
+    # Create an ephemeral keypair and connect to peer
+    print(f"Connecting to {args.host}")
+    private_key = PrivateKey(SigningKey.generate(curve=SECP256k1).to_string())
     lc = connect(private_key, peer.node_id, peer.host, port=peer.port, socks_addr=None)
+
     # Send an init message, with no global features, and 0b10101010 as local
     # features.
     lc.send_message(b"\x00\x10\x00\x00\x00\x01\xaa")
 
-    # Now just read whatever our peer decides to send us
-    os.mkdir(LOGGING_DIRECTORY)
-    f = open(f"{LOGGING_DIRECTORY}/log.txt", "a")
+    log_filename = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".log"
+    f = open(log_filename, "a")
+
+    # connect to peer and log messages
     while True:
         message = lc.read_message()
         message = Message.from_bytes(message)
