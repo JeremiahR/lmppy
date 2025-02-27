@@ -1,23 +1,6 @@
 from dataclasses import dataclass
 
-from pyln.proto.primitives import PublicKey
-
-from app.types import LIGHTNING_MESSAGE_TYPES
-
-
-@dataclass
-class Peer:
-    node_id: PublicKey
-    host: str
-    port: int
-
-    @classmethod
-    def from_string(cls, s: str):
-        node_id, host = s.split("@")
-        host, port = host.split(":")
-        port = int(port)
-        node_id = PublicKey(bytes.fromhex(node_id))
-        return cls(node_id, host, port)
+from app.serialization import MessageType
 
 
 @dataclass
@@ -30,10 +13,9 @@ class Message:
 
     @classmethod
     def from_bytes(cls, data: bytes):
-        message_type = int.from_bytes(data[:2], byteorder="big")
-        message_type_str = LIGHTNING_MESSAGE_TYPES.get(message_type, "unknown")
+        mt, _ = MessageType.from_bytestream(data[:2])
         length = len(data)
-        return cls(message_type, message_type_str, length, data, {})
+        return cls(mt.type_int, mt.name, length, data, {})
 
     def __str__(self):
         return f"{self.__class__.__name__}(type={self.type_name}, type_code={self.type_code}, length={self.length}, data={self.data.hex()})"
