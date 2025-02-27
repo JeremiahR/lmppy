@@ -5,7 +5,8 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.messages import InitMessage, MessageDecoder
+from app.messages import InitMessage, MessageDecoder, PingMessage
+from app.serialization import MessageTypeElement, NumPongBytes, PingOrPongBytes
 
 
 def test_init_message():
@@ -16,6 +17,7 @@ def test_init_message():
     assert type(m) is InitMessage
     assert m.type_code == 16
     assert m.type_name == "init"
+    assert m.__str__() is not None, "Expected a non-empty string representation"
     assert m.length == 49
     assert m.global_features.data is not None
     assert m.local_features.data is not None
@@ -31,3 +33,19 @@ def test_init_message():
     assert m.global_features.data == b""
     assert m.local_features.data == 0b10101010.to_bytes(1, "big")
     assert m.to_bytes() == b"\x00\x10\x00\x00\x00\x01\xaa"
+
+
+def test_construct_ping():
+    m = PingMessage(
+        id=18,
+        name="ping",
+        properties={
+            MessageTypeElement.key: MessageTypeElement(id=18, name="ping"),
+            NumPongBytes.key: NumPongBytes(num_bytes=10),
+            PingOrPongBytes.key: PingOrPongBytes(data=bytes.fromhex("aa")),
+        },
+    )
+    # Note: not sure if this format is correct
+    assert (
+        m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa"
+    ), "Serialized bytes should match expected value"

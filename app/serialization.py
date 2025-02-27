@@ -6,7 +6,7 @@ from app.types import LIGHTNING_MESSAGE_TYPES
 
 @dataclass
 class SerializedElement:
-    id = None
+    key = "serialized_element"
 
     @classmethod
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
@@ -19,64 +19,67 @@ class SerializedElement:
 
 
 @dataclass
-class MessageType(SerializedElement):
+class MessageTypeElement(SerializedElement):
     """The initial type of a message, stored in the first two bytes of the message"""
 
-    id = "message_type"
-    type_int: int
+    key = "message_type"
+    id: int
     name: str
 
     @classmethod
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
-        type_int = int.from_bytes(data[:2], byteorder="big")
-        name = LIGHTNING_MESSAGE_TYPES.get(type_int, "unknown")
-        return (cls(type_int=type_int, name=name), data[2:])
+        id = int.from_bytes(data[:2], byteorder="big")
+        name = LIGHTNING_MESSAGE_TYPES.get(id, "unknown")
+        return (cls(id=id, name=name), data[2:])
 
     def to_bytes(self) -> bytes:
-        return self.type_int.to_bytes(2, byteorder="big")
+        return self.id.to_bytes(2, byteorder="big")
 
 
 @dataclass
 class SizedBytes(SerializedElement):
-    byteslen: int
     data: bytes
 
     @classmethod
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         byteslen = int.from_bytes(data[:2], byteorder="big")
-        features = data[2 : 2 + byteslen]
-        return (cls(byteslen, features), data[2 + byteslen :])
+        bytesdata = data[2 : 2 + byteslen]
+        return (cls(bytesdata), data[2 + byteslen :])
 
     def to_bytes(self) -> bytes:
         return self.byteslen.to_bytes(2, byteorder="big") + bytes(self.data)
+
+    @property
+    def byteslen(self) -> int:
+        return len(self.data)
 
 
 @dataclass
 class GlobalFeatures(SizedBytes):
     """The global features of a node."""
 
-    id = "global_features"
+    key = "global_features"
 
 
 @dataclass
 class LocalFeatures(SizedBytes):
     """The local features of a node."""
 
-    id = "local_features"
+    key = "local_features"
 
 
 @dataclass
 class PingOrPongBytes(SizedBytes):
     """The number of bytes in a ping or pong message."""
 
-    id = "ping_or_pong_bytes"
+    key = "ping_or_pong_bytes"
 
 
 @dataclass
 class NumPongBytes(SerializedElement):
     """The number of bytes in a pong message."""
 
-    id = "num_pong_bytes"
+    key = "num_pong_bytes"
     num_bytes: int
 
     @classmethod
@@ -92,7 +95,7 @@ class NumPongBytes(SerializedElement):
 class RemainderBytes(SerializedElement):
     """Special case element when we have bytes at the end that we don't handle yet."""
 
-    id = "remainder"
+    key = "remainder"
     data: bytes
 
     @classmethod

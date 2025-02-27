@@ -4,7 +4,7 @@ from typing import List, Type
 from app.serialization import (
     GlobalFeatures,
     LocalFeatures,
-    MessageType,
+    MessageTypeElement,
     NumPongBytes,
     PingOrPongBytes,
     RemainderBytes,
@@ -14,36 +14,42 @@ from app.serialization import (
 
 @dataclass
 class Message:
+    id: int
+    name: str
     properties: dict
 
     @classmethod
     def features(cls) -> List[Type[SerializedElement]]:
-        return [MessageType]
+        return [MessageTypeElement]
 
     @classmethod
     def from_bytes(cls, data: bytes):
         properties = {}
         chunked = bytes(data)
+        id, name = None, None
         for feature in cls.features():
-            el, chunked = feature.from_bytes(chunked)
-            properties[el.id] = el
+            el, chunked = feature.from_bytes(bytes(chunked))
+            properties[el.key] = el
+            if feature is MessageTypeElement:
+                id = el.id
+                name = el.name
         if len(chunked) > 0:
-            properties[RemainderBytes.id], chunked = RemainderBytes.from_bytes(chunked)
-            assert len(chunked) == 0, f"Unexpected data left: {chunked}"
-        return cls(properties)
+            properties[RemainderBytes.key], chunked = RemainderBytes.from_bytes(chunked)
+        assert len(chunked) == 0, f"Unexpected data left: {chunked}"
+        return cls(id, name, properties)
 
     def to_bytes(self) -> bytes:
         data = b""
         for feature in self.features():
-            data += feature.to_bytes(self.properties[feature.id])
-        if RemainderBytes.id in self.properties:
-            data += self.properties[RemainderBytes.id].to_bytes()
+            data += self.properties[feature.key].to_bytes()
+        if RemainderBytes.key in self.properties:
+            data += self.properties[RemainderBytes.key].to_bytes()
         return data
 
     def __str__(self):
         out = []
         for property in self.properties.values():
-            out.append(f"{property.id}: {property}")
+            out.append(f"{property.key}: {property}")
         return f"{self.__class__.__name__}({', '.join(out)})"
 
     @property
@@ -52,11 +58,11 @@ class Message:
 
     @property
     def type_name(self):
-        return self.properties.get(MessageType.id, None).name
+        return self.properties.get(MessageTypeElement.key, None).name
 
     @property
     def type_code(self):
-        return self.properties.get(MessageType.id, None).type_int
+        return self.properties.get(MessageTypeElement.key, None).id
 
 
 class InitMessage(Message):
@@ -68,23 +74,20 @@ class InitMessage(Message):
 
     @property
     def global_features(self):
-        return self.properties[GlobalFeatures.id]
+        return self.properties[GlobalFeatures.key]
 
     @property
     def local_features(self):
-        return self.properties[LocalFeatures.id]
+        return self.properties[LocalFeatures.key]
 
 
 class PingMessage(Message):
-    id = 18
+    id: int = 18
+    name: str = "ping"
 
     @classmethod
     def features(cls) -> List[Type[SerializedElement]]:
         return super().features() + [NumPongBytes, PingOrPongBytes]
-
-    @classmethod
-    def create(cls, ping_or_pong_bytes: PingOrPongBytes):
-        return cls()
 
 
 class PongMessage(Message):

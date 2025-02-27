@@ -6,8 +6,9 @@ from ecdsa import SECP256k1, SigningKey
 from pyln.proto.primitives import PrivateKey
 from pyln.proto.wire import connect
 
-from app.messages import MessageDecoder
+from app.messages import MessageDecoder, PingMessage
 from app.peer import Peer
+from app.serialization import MessageTypeElement, NumPongBytes, PingOrPongBytes
 
 
 def main():
@@ -35,13 +36,27 @@ def main():
     log_filename = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".log"
     f = open(log_filename, "a")
 
+    ping = PingMessage(
+        id=18,
+        name="ping",
+        properties={
+            MessageTypeElement.key: MessageTypeElement(id=18, name="ping"),
+            NumPongBytes.key: NumPongBytes(num_bytes=10),
+            PingOrPongBytes.key: PingOrPongBytes(data=bytes.fromhex("aa")),
+        },
+    )
+
     # connect to peer and log messages
+    i = 0
     while True:
         data = lc.read_message()
         message = MessageDecoder.from_bytes(data)
         f.write(data.hex() + "\n")
         f.flush()
         print(message)
+        if i % 3 == 0:
+            lc.send_message(ping.to_bytes())
+        i += 1
 
 
 if __name__ == "__main__":
