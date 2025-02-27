@@ -37,9 +37,9 @@ def main():
 
     # connect to peer and log messages
     while True:
-        message = lc.read_message()
-        message = MessageDecoder.from_bytes(message)
-        f.write(message.data.hex() + "\n")
+        data = lc.read_message()
+        message = MessageDecoder.from_bytes(data)
+        f.write(data.hex() + "\n")
         f.flush()
         print(message)
 

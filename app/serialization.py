@@ -5,8 +5,8 @@ from app.types import LIGHTNING_MESSAGE_TYPES
 
 
 @dataclass
-class Element:
-    id = "ImplementMe!"
+class SerializedElement:
+    id = None
 
     @classmethod
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
@@ -19,7 +19,7 @@ class Element:
 
 
 @dataclass
-class MessageType(Element):
+class MessageType(SerializedElement):
     """The initial type of a message, stored in the first two bytes of the message"""
 
     id = "message_type"
@@ -37,8 +37,7 @@ class MessageType(Element):
 
 
 @dataclass
-class SizedBytes(Element):
-    id = "sized_bytes"
+class SizedBytes(SerializedElement):
     byteslen: int
     data: bytes
 
@@ -74,7 +73,7 @@ class PingOrPongBytes(SizedBytes):
 
 
 @dataclass
-class NumPongBytes(Element):
+class NumPongBytes(SerializedElement):
     """The number of bytes in a pong message."""
 
     id = "num_pong_bytes"
@@ -90,7 +89,7 @@ class NumPongBytes(Element):
 
 
 @dataclass
-class RemainderBytes(Element):
+class RemainderBytes(SerializedElement):
     """Special case element when we have bytes at the end that we don't handle yet."""
 
     id = "remainder"

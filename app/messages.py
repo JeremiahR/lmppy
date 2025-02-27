@@ -2,23 +2,22 @@ from dataclasses import dataclass
 from typing import List, Type
 
 from app.serialization import (
-    Element,
     GlobalFeatures,
     LocalFeatures,
     MessageType,
     NumPongBytes,
     PingOrPongBytes,
     RemainderBytes,
+    SerializedElement,
 )
 
 
 @dataclass
 class Message:
-    data: bytes
     properties: dict
 
     @classmethod
-    def features(cls) -> List[Type[Element]]:
+    def features(cls) -> List[Type[SerializedElement]]:
         return [MessageType]
 
     @classmethod
@@ -31,7 +30,7 @@ class Message:
         if len(chunked) > 0:
             properties[RemainderBytes.id], chunked = RemainderBytes.from_bytes(chunked)
             assert len(chunked) == 0, f"Unexpected data left: {chunked}"
-        return cls(data, properties)
+        return cls(properties)
 
     def to_bytes(self) -> bytes:
         data = b""
@@ -42,11 +41,14 @@ class Message:
         return data
 
     def __str__(self):
-        return f"{self.__class__.__name__}(...)"
+        out = []
+        for property in self.properties.values():
+            out.append(f"{property.id}: {property}")
+        return f"{self.__class__.__name__}({', '.join(out)})"
 
     @property
     def length(self):
-        return len(self.data)
+        return len(self.to_bytes())
 
     @property
     def type_name(self):
@@ -57,10 +59,11 @@ class Message:
         return self.properties.get(MessageType.id, None).type_int
 
 
-@dataclass
 class InitMessage(Message):
+    id = 16
+
     @classmethod
-    def features(cls) -> List[Type[Element]]:
+    def features(cls) -> List[Type[SerializedElement]]:
         return super().features() + [GlobalFeatures, LocalFeatures]
 
     @property
@@ -73,22 +76,23 @@ class InitMessage(Message):
 
 
 class PingMessage(Message):
+    id = 18
+
     @classmethod
-    def from_bytes(cls, data: bytes):
-        a = super().from_bytes(data)
-        data = data[2:]  # trim type code
-        a.properties["num_pong_bytes"], data = NumPongBytes.from_bytestream(data)
-        a.properties["pingpongdata"], data = PingOrPongBytes.from_bytestream(data)
-        return a
+    def features(cls) -> List[Type[SerializedElement]]:
+        return super().features() + [NumPongBytes, PingOrPongBytes]
+
+    @classmethod
+    def create(cls, ping_or_pong_bytes: PingOrPongBytes):
+        return cls()
 
 
 class PongMessage(Message):
+    id = 19
+
     @classmethod
-    def from_bytes(cls, data: bytes):
-        a = super().from_bytes(data)
-        data = data[2:]  # trim type code
-        a.properties["pingpongdata"], data = PingOrPongBytes.from_bytestream(data)
-        return a
+    def features(cls) -> List[Type[SerializedElement]]:
+        return super().features() + [NumPongBytes, PingOrPongBytes]
 
 
 class MessageDecoder:
