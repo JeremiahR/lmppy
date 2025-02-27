@@ -13,6 +13,10 @@ class Element:
         """Deserialize the element and then return remaining data as a slice"""
         raise NotImplementedError("Subclasses must implement this method")
 
+    def to_bytes(self) -> bytes:
+        """Serialize the element and then return the bytes"""
+        raise NotImplementedError("Subclasses must implement this method")
+
 
 @dataclass
 class MessageType(Element):
@@ -28,50 +32,45 @@ class MessageType(Element):
         name = LIGHTNING_MESSAGE_TYPES.get(type_int, "unknown")
         return (cls(type_int=type_int, name=name), data[2:])
 
+    def to_bytes(self) -> bytes:
+        return self.type_int.to_bytes(2, byteorder="big")
+
 
 @dataclass
-class GlobalFeatures(Element):
+class SizedBytes(Element):
+    id = "sized_bytes"
+    byteslen: int
+    data: bytes
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        byteslen = int.from_bytes(data[:2], byteorder="big")
+        features = data[2 : 2 + byteslen]
+        return (cls(byteslen, features), data[2 + byteslen :])
+
+    def to_bytes(self) -> bytes:
+        return self.byteslen.to_bytes(2, byteorder="big") + bytes(self.data)
+
+
+@dataclass
+class GlobalFeatures(SizedBytes):
     """The global features of a node."""
 
     id = "global_features"
-    gflen: int
-    features: bytes
-
-    @classmethod
-    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
-        gflen = int.from_bytes(data[:2], byteorder="big")
-        features = data[2 : 2 + gflen]
-        return (cls(gflen, features), data[2 + gflen :])
 
 
 @dataclass
-class LocalFeatures(Element):
+class LocalFeatures(SizedBytes):
     """The local features of a node."""
 
     id = "local_features"
-    lflen: int
-    features: bytes
-
-    @classmethod
-    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
-        lflen = int.from_bytes(data[:2], byteorder="big")
-        features = data[2 : 2 + lflen]
-        return (cls(lflen, features), data[2 + lflen :])
 
 
 @dataclass
-class PingOrPongBytes(Element):
+class PingOrPongBytes(SizedBytes):
     """The number of bytes in a ping or pong message."""
 
     id = "ping_or_pong_bytes"
-    num_bytes: int
-    ignored: bytes
-
-    @classmethod
-    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
-        num_bytes = int.from_bytes(data[:2], byteorder="big")
-        ignored = data[2 : 2 + num_bytes]
-        return (cls(num_bytes, ignored), data[2 + num_bytes :])
 
 
 @dataclass
@@ -85,3 +84,21 @@ class NumPongBytes(Element):
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         num_bytes = int.from_bytes(data[:2], byteorder="big")
         return (cls(num_bytes), data[2:])
+
+    def to_bytes(self) -> bytes:
+        return self.num_bytes.to_bytes(2, byteorder="big")
+
+
+@dataclass
+class RemainderBytes(Element):
+    """Special case element when we have bytes at the end that we don't handle yet."""
+
+    id = "remainder"
+    data: bytes
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        return (cls(bytes(data)), b"")
+
+    def to_bytes(self) -> bytes:
+        return bytes(self.data)

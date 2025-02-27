@@ -8,6 +8,7 @@ from app.serialization import (
     MessageType,
     NumPongBytes,
     PingOrPongBytes,
+    RemainderBytes,
 )
 
 
@@ -27,7 +28,18 @@ class Message:
         for feature in cls.features():
             el, chunked = feature.from_bytes(chunked)
             properties[el.id] = el
+        if len(chunked) > 0:
+            properties[RemainderBytes.id], chunked = RemainderBytes.from_bytes(chunked)
+            assert len(chunked) == 0, f"Unexpected data left: {chunked}"
         return cls(data, properties)
+
+    def to_bytes(self) -> bytes:
+        data = b""
+        for feature in self.features():
+            data += feature.to_bytes(self.properties[feature.id])
+        if RemainderBytes.id in self.properties:
+            data += self.properties[RemainderBytes.id].to_bytes()
+        return data
 
     def __str__(self):
         return f"{self.__class__.__name__}(...)"
