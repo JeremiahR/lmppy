@@ -6,8 +6,6 @@ from app.types import LIGHTNING_MESSAGE_TYPES
 
 @dataclass
 class Element:
-    id: str
-
     @classmethod
     def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
         """Deserialize the element and then return remaining data as a slice"""
@@ -25,4 +23,58 @@ class MessageType(Element):
     def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
         type_int = int.from_bytes(data[:2], byteorder="big")
         name = LIGHTNING_MESSAGE_TYPES.get(type_int, "unknown")
-        return (cls(id=f"{cls.__name__}", type_int=type_int, name=name), data[2:])
+        return (cls(type_int=type_int, name=name), data[2:])
+
+
+@dataclass
+class GlobalFeatures(Element):
+    """The global features of a node."""
+
+    gflen: int
+    features: bytes
+
+    @classmethod
+    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+        gflen = int.from_bytes(data[:2], byteorder="big")
+        features = data[2 : 2 + gflen]
+        return (cls(gflen, features), data[2 + gflen :])
+
+
+@dataclass
+class LocalFeatures(Element):
+    """The local features of a node."""
+
+    lflen: int
+    features: bytes
+
+    @classmethod
+    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+        lflen = int.from_bytes(data[:2], byteorder="big")
+        features = data[2 : 2 + lflen]
+        return (cls(lflen, features), data[2 + lflen :])
+
+
+@dataclass
+class PingOrPongBytes(Element):
+    """The number of bytes in a ping or pong message."""
+
+    num_bytes: int
+    ignored: bytes
+
+    @classmethod
+    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+        num_bytes = int.from_bytes(data[:2], byteorder="big")
+        ignored = data[2 : 2 + num_bytes]
+        return (cls(num_bytes, ignored), data[2 + num_bytes :])
+
+
+@dataclass
+class NumPongBytes(Element):
+    """The number of bytes in a pong message."""
+
+    num_bytes: int
+
+    @classmethod
+    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+        num_bytes = int.from_bytes(data[:2], byteorder="big")
+        return (cls(num_bytes), data[2:])

@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 
-from app.serialization import MessageType
+from app.serialization import (
+    GlobalFeatures,
+    LocalFeatures,
+    MessageType,
+    NumPongBytes,
+    PingOrPongBytes,
+)
 
 
 @dataclass
@@ -26,17 +32,19 @@ class InitMessage(Message):
     @classmethod
     def from_bytes(cls, data: bytes):
         a = super().from_bytes(data)
-        data = data[2:]
-        gflen = int.from_bytes(data[:2], byteorder="big")
-        data = data[2:]
-        a.properties["global_features"] = data[:gflen]
-        data = data[gflen:]
-        lflen = int.from_bytes(data[:2], byteorder="big")
-        data = data[2:]
-        a.properties["local_features"] = data[:lflen]
-        data = data[lflen:]
-        a.properties["tlvs"] = data
+        data = data[2:]  # trim type code
+        a.properties["global_features"], data = GlobalFeatures.from_bytestream(data)
+        a.properties["local_features"], data = LocalFeatures.from_bytestream(data)
+        # a.properties["tlvs"] = data
         return a
+
+    @property
+    def global_features(self):
+        return self.properties["global_features"]
+
+    @property
+    def local_features(self):
+        return self.properties["local_features"]
 
 
 class PingMessage(Message):
@@ -44,11 +52,8 @@ class PingMessage(Message):
     def from_bytes(cls, data: bytes):
         a = super().from_bytes(data)
         data = data[2:]  # trim type code
-        a.properties["num_pong_bytes"] = int.from_bytes(data[:2], byteorder="big")
-        data = data[2:]  # trim num_pong_bytes
-        a.properties["byteslen"] = int.from_bytes(data[:2], byteorder="big")
-        data = data[2:]  # trim byteslen
-        a.properties["ignored"] = data
+        a.properties["num_pong_bytes"], data = NumPongBytes.from_bytestream(data)
+        a.properties["pingpongdata"], data = PingOrPongBytes.from_bytestream(data)
         return a
 
 
@@ -57,9 +62,7 @@ class PongMessage(Message):
     def from_bytes(cls, data: bytes):
         a = super().from_bytes(data)
         data = data[2:]  # trim type code
-        a.properties["byteslen"] = int.from_bytes(data[:2], byteorder="big")
-        data = data[2:]  # trim byteslen
-        a.properties["ignored"] = data
+        a.properties["pingpongdata"], data = PingOrPongBytes.from_bytestream(data)
         return a
 
 

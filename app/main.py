@@ -6,7 +6,7 @@ from ecdsa import SECP256k1, SigningKey
 from pyln.proto.primitives import PrivateKey
 from pyln.proto.wire import connect
 
-from app.models import MessageDecoder
+from app.messages import MessageDecoder
 from app.peer import Peer
 
 

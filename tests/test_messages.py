@@ -18,3 +18,15 @@ def test_init_message():
     assert m.type_code == 16
     assert m.type_name == "init"
     assert m.length == 49
+    assert m.global_features is not None
+    assert m.local_features is not None
+
+    # Send an init message, with no global features, and 0b10101010 as local
+    # features.
+    m = MessageDecoder.from_bytes(b"\x00\x10\x00\x00\x00\x01\xaa")
+    assert type(m) is InitMessage
+    assert m.type_code == 16
+    assert m.type_name == "init"
+    assert m.length == 7
+    assert m.global_features.features == b""
+    assert m.local_features.features == 0b10101010.to_bytes(1, "big")
