@@ -9,7 +9,7 @@ class Element:
     id = "ImplementMe!"
 
     @classmethod
-    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         """Deserialize the element and then return remaining data as a slice"""
         raise NotImplementedError("Subclasses must implement this method")
 
@@ -23,7 +23,7 @@ class MessageType(Element):
     name: str
 
     @classmethod
-    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         type_int = int.from_bytes(data[:2], byteorder="big")
         name = LIGHTNING_MESSAGE_TYPES.get(type_int, "unknown")
         return (cls(type_int=type_int, name=name), data[2:])
@@ -38,7 +38,7 @@ class GlobalFeatures(Element):
     features: bytes
 
     @classmethod
-    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         gflen = int.from_bytes(data[:2], byteorder="big")
         features = data[2 : 2 + gflen]
         return (cls(gflen, features), data[2 + gflen :])
@@ -53,7 +53,7 @@ class LocalFeatures(Element):
     features: bytes
 
     @classmethod
-    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         lflen = int.from_bytes(data[:2], byteorder="big")
         features = data[2 : 2 + lflen]
         return (cls(lflen, features), data[2 + lflen :])
@@ -68,7 +68,7 @@ class PingOrPongBytes(Element):
     ignored: bytes
 
     @classmethod
-    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         num_bytes = int.from_bytes(data[:2], byteorder="big")
         ignored = data[2 : 2 + num_bytes]
         return (cls(num_bytes, ignored), data[2 + num_bytes :])
@@ -82,6 +82,6 @@ class NumPongBytes(Element):
     num_bytes: int
 
     @classmethod
-    def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
         num_bytes = int.from_bytes(data[:2], byteorder="big")
         return (cls(num_bytes), data[2:])

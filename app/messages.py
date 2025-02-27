@@ -25,7 +25,7 @@ class Message:
         properties = {}
         chunked = bytes(data)
         for feature in cls.features():
-            el, chunked = feature.from_bytestream(chunked)
+            el, chunked = feature.from_bytes(chunked)
             properties[el.id] = el
         return cls(data, properties)
 

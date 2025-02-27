@@ -12,7 +12,7 @@ def test_decode_type_of_init_message():
     data = bytes.fromhex(
         "001000021100000708a0880a8a59a1012006226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f"
     )
-    (m, new_data) = MessageType.from_bytestream(data)
+    (m, new_data) = MessageType.from_bytes(data)
     assert type(m) is MessageType
     assert m.type_int == 16
     assert m.name == "init"
