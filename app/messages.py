@@ -95,7 +95,7 @@ class PongMessage(Message):
 
     @classmethod
     def features(cls) -> List[Type[SerializedElement]]:
-        return super().features() + [NumPongBytes, PingOrPongBytes]
+        return super().features() + [PingOrPongBytes]
 
 
 class MessageDecoder:
