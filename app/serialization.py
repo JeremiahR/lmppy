@@ -6,6 +6,8 @@ from app.types import LIGHTNING_MESSAGE_TYPES
 
 @dataclass
 class Element:
+    id = "ImplementMe!"
+
     @classmethod
     def from_bytestream(cls, data: bytes) -> tuple[Self, bytes]:
         """Deserialize the element and then return remaining data as a slice"""
@@ -16,6 +18,7 @@ class Element:
 class MessageType(Element):
     """The initial type of a message, stored in the first two bytes of the message"""
 
+    id = "message_type"
     type_int: int
     name: str
 
@@ -30,6 +33,7 @@ class MessageType(Element):
 class GlobalFeatures(Element):
     """The global features of a node."""
 
+    id = "global_features"
     gflen: int
     features: bytes
 
@@ -44,6 +48,7 @@ class GlobalFeatures(Element):
 class LocalFeatures(Element):
     """The local features of a node."""
 
+    id = "local_features"
     lflen: int
     features: bytes
 
@@ -58,6 +63,7 @@ class LocalFeatures(Element):
 class PingOrPongBytes(Element):
     """The number of bytes in a ping or pong message."""
 
+    id = "ping_or_pong_bytes"
     num_bytes: int
     ignored: bytes
 
@@ -72,6 +78,7 @@ class PingOrPongBytes(Element):
 class NumPongBytes(Element):
     """The number of bytes in a pong message."""
 
+    id = "num_pong_bytes"
     num_bytes: int
 
     @classmethod

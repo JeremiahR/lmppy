@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from typing import List, Type
 
 from app.serialization import (
+    Element,
     GlobalFeatures,
     LocalFeatures,
     MessageType,
@@ -11,40 +13,51 @@ from app.serialization import (
 
 @dataclass
 class Message:
-    type_code: int
-    type_name: str
-    length: int
     data: bytes
     properties: dict
 
     @classmethod
+    def features(cls) -> List[Type[Element]]:
+        return [MessageType]
+
+    @classmethod
     def from_bytes(cls, data: bytes):
-        mt, _ = MessageType.from_bytestream(data[:2])
-        length = len(data)
-        return cls(mt.type_int, mt.name, length, data, {})
+        properties = {}
+        chunked = bytes(data)
+        for feature in cls.features():
+            el, chunked = feature.from_bytestream(chunked)
+            properties[el.id] = el
+        return cls(data, properties)
 
     def __str__(self):
-        return f"{self.__class__.__name__}(type={self.type_name}, type_code={self.type_code}, length={self.length}, data={self.data.hex()})"
+        return f"{self.__class__.__name__}(...)"
+
+    @property
+    def length(self):
+        return len(self.data)
+
+    @property
+    def type_name(self):
+        return self.properties.get(MessageType.id, None).name
+
+    @property
+    def type_code(self):
+        return self.properties.get(MessageType.id, None).type_int
 
 
 @dataclass
 class InitMessage(Message):
     @classmethod
-    def from_bytes(cls, data: bytes):
-        a = super().from_bytes(data)
-        data = data[2:]  # trim type code
-        a.properties["global_features"], data = GlobalFeatures.from_bytestream(data)
-        a.properties["local_features"], data = LocalFeatures.from_bytestream(data)
-        # a.properties["tlvs"] = data
-        return a
+    def features(cls) -> List[Type[Element]]:
+        return super().features() + [GlobalFeatures, LocalFeatures]
 
     @property
     def global_features(self):
-        return self.properties["global_features"]
+        return self.properties[GlobalFeatures.id]
 
     @property
     def local_features(self):
-        return self.properties["local_features"]
+        return self.properties[LocalFeatures.id]
 
 
 class PingMessage(Message):
