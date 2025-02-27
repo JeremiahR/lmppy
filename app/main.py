@@ -6,7 +6,7 @@ from ecdsa import SECP256k1, SigningKey
 from pyln.proto.primitives import PrivateKey
 from pyln.proto.wire import connect
 
-from app.models import Message, Peer
+from app.models import MessageDecoder, Peer
 
 
 def main():
@@ -37,8 +37,8 @@ def main():
     # connect to peer and log messages
     while True:
         message = lc.read_message()
-        message = Message.from_bytes(message)
-        f.write(message.content.hex() + "\n")
+        message = MessageDecoder.from_bytes(message)
+        f.write(message.data.hex() + "\n")
         f.flush()
         print(message)
 
