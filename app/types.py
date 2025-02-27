@@ -1,0 +1,46 @@
+# https://github.com/lightning/bolts/blob/master/02-peer-protocol.md
+LIGHTNING_MESSAGE_TYPES = {
+    2: "stfu",
+    # Connection & Keepalive
+    16: "init",
+    17: "error",
+    18: "ping",
+    19: "pong",
+    # Channel Establishment
+    32: "open_channel",
+    33: "accept_channel",
+    34: "funding_created",
+    35: "funding_signed",
+    36: "channel_ready",
+    38: "shutdown",
+    39: "closing_signed",
+    40: "closing_complete",
+    41: "closing_sig",
+    64: "open_channel2",
+    65: "accept_channel2",
+    # TX updates
+    66: "tx_add_input",
+    67: "tx_add_output",
+    68: "tx_remove_input",
+    69: "tx_remove_output",
+    70: "tx_complete",
+    71: "tx_signatures",
+    72: "tx_init_rbf",
+    73: "tx_ack_rbf",
+    74: "tx_abort",
+    # Channel Updates & HTLC Management
+    128: "update_add_htlc",
+    130: "update_fulfill_htlc",
+    131: "update_fail_htlc",
+    132: "commitment_signed",
+    133: "revoke_and_ack",
+    134: "update_fee",
+    135: "update_fail_malformed_htlc",
+    136: "channel_reestablish",
+    # Gossip & Network Announcements
+    256: "channel_announcement",
+    257: "node_announcement",
+    258: "channel_update",
+    259: "announcement_signatures",
+    265: "gossip_timestamp_filter",
+}

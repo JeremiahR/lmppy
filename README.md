@@ -8,7 +8,7 @@ Written in Python so that it may be quickly modified. Uses [pyln-proto](https://
 
 `pip install uv`
 `uv install`
-`uv run python main.py pubkey@url:port`
+`uv run python -m app.main pubkey@url:port`
 
 For example, you might use this to connect to a peer from a test network created in [polar](https://lightningpolar.com/).
 
