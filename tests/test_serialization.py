@@ -8,7 +8,7 @@ sys.path.insert(0, str(project_root))
 from app.message_types import MessageTypeElement
 
 
-def test_decode_type_of_init_message():
+def test_decode_init_message():
     data = bytes.fromhex(
         "001000021100000708a0880a8a59a1012006226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f"
     )
