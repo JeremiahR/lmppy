@@ -5,8 +5,8 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
+from app.message_types import MessageTypeElement, NumPongBytes, PingOrPongBytes
 from app.messages import InitMessage, MessageDecoder, PingMessage
-from app.serialization import MessageTypeElement, NumPongBytes, PingOrPongBytes
 
 
 def test_init_message():
@@ -46,6 +46,6 @@ def test_construct_ping():
         },
     )
     # Note: not sure if this format is correct
-    assert (
-        m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa"
-    ), "Serialized bytes should match expected value"
+    assert m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa", (
+        "Serialized bytes should match expected value"
+    )
