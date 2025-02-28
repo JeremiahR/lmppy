@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Type
+from typing import List, Type, cast
 
 from app.message_types import (
     GlobalFeatures,
@@ -26,17 +26,17 @@ class Message:
     def from_bytes(cls, data: bytes):
         properties = {}
         chunked = bytes(data)
-        id, name = None, None
         for feature in cls.features():
             el, chunked = feature.from_bytes(bytes(chunked))
             properties[el.key] = el
             if feature is MessageTypeElement:
-                id = el.id
-                name = el.name
+                el = cast(MessageTypeElement, el)
+                id: int = el.id
+                name: str = el.name
         if len(chunked) > 0:
             properties[RemainderBytes.key], chunked = RemainderBytes.from_bytes(chunked)
         assert len(chunked) == 0, f"Unexpected data left: {chunked}"
-        return cls(id, name, properties)
+        return cls(id, name, properties)  # pyright: ignore
 
     def to_bytes(self) -> bytes:
         data = b""

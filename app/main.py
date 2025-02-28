@@ -27,7 +27,7 @@ def main():
     # Create an ephemeral keypair and connect to peer
     print(f"Connecting to {args.host}")
     private_key = PrivateKey(SigningKey.generate(curve=SECP256k1).to_string())
-    lc = connect(private_key, peer.node_id, peer.host, port=peer.port, socks_addr=None)
+    lc = connect(private_key, peer.node_id, peer.host, port=peer.port)  # pyright: ignore
 
     # Send an init message, with no global features, and 0b10101010 as local
     # features.
