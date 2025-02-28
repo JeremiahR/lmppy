@@ -1,9 +1,18 @@
 # Features
 
-- Generalized serializer/deserializer for (init, ping, pong, node_announcement).
-- Maintain connection with ping/pong. Both responding to pings and making them.
+## Todo
+
+- Async -> send pings in another thread.
+- Recieve pings and respond.
+- Support node_announcement.
+- Advanced serialization (more than one signature, etc.)
 - Learn about new nodes and connect to them -> build graph outward.
-- Frontend UI. Maybe with [textual](https://textual.textualize.io/).
+- Frontend? Maybe with [textual](https://textual.textualize.io/).
+
+## Completed
+
+- Basic serializer/deserializer for (init, ping, pong, node_announcement).
+- Send pings, recieve pongs.
 
 # Spec
 
