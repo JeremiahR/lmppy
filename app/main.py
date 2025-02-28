@@ -48,8 +48,16 @@ def main():
 
     # connect to peer and log messages
     i = 0
+    error_count = 0
     while True:
-        data = lc.read_message()
+        try:
+            data = lc.read_message()
+        except ValueError:
+            error_count += 1
+            if error_count > 10:
+                print("Too many errors, exiting")
+                sys.exit(1)
+            continue
         message = MessageDecoder.from_bytes(data)
         f.write(data.hex() + "\n")
         f.flush()
