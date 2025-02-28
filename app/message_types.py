@@ -37,7 +37,7 @@ class MessageTypeElement(SerializedElement):
 
 
 @dataclass
-class SizedBytes(SerializedElement):
+class SizedBytesElement(SerializedElement):
     data: bytes
 
     @classmethod
@@ -55,31 +55,7 @@ class SizedBytes(SerializedElement):
 
 
 @dataclass
-class GlobalFeatures(SizedBytes):
-    """The global features of a node."""
-
-    key = "global_features"
-
-
-@dataclass
-class LocalFeatures(SizedBytes):
-    """The local features of a node."""
-
-    key = "local_features"
-
-
-@dataclass
-class PingOrPongBytes(SizedBytes):
-    """The number of bytes in a ping or pong message."""
-
-    key = "ping_or_pong_bytes"
-
-
-@dataclass
-class NumPongBytes(SerializedElement):
-    """The number of bytes in a pong message."""
-
-    key = "num_pong_bytes"
+class U16Element(SerializedElement):
     num_bytes: int
 
     @classmethod
@@ -92,14 +68,14 @@ class NumPongBytes(SerializedElement):
 
 
 @dataclass
-class RemainderBytes(SerializedElement):
+class RemainderElement(SerializedElement):
     """Special case element when we have bytes at the end that we don't handle yet."""
 
-    key = "remainder"
     data: bytes
 
     @classmethod
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        """Takes all remaining bytes."""
         return (cls(bytes(data)), b"")
 
     def to_bytes(self) -> bytes:
