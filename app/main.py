@@ -52,7 +52,8 @@ def main():
     while True:
         try:
             data = lc.read_message()
-        except ValueError:
+        except ValueError as e:
+            print(f"Error reading message: {e}")
             error_count += 1
             if error_count > 10:
                 print("Too many errors, exiting")
