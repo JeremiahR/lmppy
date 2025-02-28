@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Type
 
-from app.serialization import (
+from app.message_types import (
     GlobalFeatures,
     LocalFeatures,
     MessageTypeElement,
