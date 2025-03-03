@@ -111,6 +111,18 @@ class PingMessage(Message):
             (ElementKey.PING_OR_PONG_BYTES, SizedBytesElement),
         ]
 
+    @classmethod
+    def create(cls, num_bytes: int, message: bytes):
+        return PingMessage(
+            id=18,
+            name="ping",
+            properties={
+                ElementKey.TYPE: MessageTypeElement(id=18, name="ping"),
+                ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=num_bytes),
+                ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(data=message),
+            },
+        )
+
 
 class PongMessage(Message):
     id = 19

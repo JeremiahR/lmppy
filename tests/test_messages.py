@@ -49,3 +49,8 @@ def test_construct_ping():
     assert m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa", (
         "Serialized bytes should match expected value"
     )
+
+    m = PingMessage.create(10, bytes.fromhex("aa"))
+    assert m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa", (
+        "Serialized bytes should match expected value"
+    )
