@@ -1,8 +1,14 @@
 from dataclasses import dataclass
 from typing import Self
 
+TLV_MESSAGE_TYPES = {
+    1: "networks",
+    3: "remote_addr",
+}
+
 # https://github.com/lightning/bolts/blob/master/02-peer-protocol.md
 LIGHTNING_MESSAGE_TYPES = {
+    1: "warning",
     2: "stfu",
     # Connection & Keepalive
     16: "init",
