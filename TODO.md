@@ -5,9 +5,6 @@
 - Async -> send pings in another thread, so that can connect to > 1 node, and chat w/ node while pings are going.
 - Recieve pings and respond (only sends pings now).
 - Support node_announcement and discovery.
-- Serialization plan
-    - rename 'key' to 'type_name' in message_types
-    - make 'key' a thing passed in in .features()
 - Rework serialization (more than one signature, etc.)
     - starts as a list of named values
     - minimal abstraction
