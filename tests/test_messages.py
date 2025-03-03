@@ -5,7 +5,8 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.messages import InitMessage, MessageDecoder
+from app.message_elements import MessageTypeElement, SizedBytesElement, U16Element
+from app.messages import ElementKey, InitMessage, MessageDecoder, PingMessage
 
 
 def test_init_message():
@@ -34,17 +35,17 @@ def test_init_message():
     assert m.to_bytes() == b"\x00\x10\x00\x00\x00\x01\xaa"
 
 
-# def test_construct_ping():
-#     m = PingMessage(
-#         id=18,
-#         name="ping",
-#         properties={
-#             MessageTypeElement.key: MessageTypeElement(id=18, name="ping"),
-#             NumPongBytes.key: NumPongBytes(num_bytes=10),
-#             PingOrPongBytes.key: PingOrPongBytes(data=bytes.fromhex("aa")),
-#         },
-#     )
-#     # Note: not sure if this format is correct
-#     assert m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa", (
-#         "Serialized bytes should match expected value"
-#     )
+def test_construct_ping():
+    m = PingMessage(
+        id=18,
+        name="ping",
+        properties={
+            ElementKey.TYPE: MessageTypeElement(id=18, name="ping"),
+            ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=10),
+            ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(data=bytes.fromhex("aa")),
+        },
+    )
+    # Note: not sure if this format is correct
+    assert m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa", (
+        "Serialized bytes should match expected value"
+    )

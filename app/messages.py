@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Tuple, Type, TypeAlias, cast
 
-from app.message_types import (
+from app.message_elements import (
     MessageTypeElement,
     RemainderElement,
     SerializedElement,

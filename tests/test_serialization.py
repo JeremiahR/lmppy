@@ -5,7 +5,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.message_types import MessageTypeElement
+from app.message_elements import MessageTypeElement
 
 
 def test_decode_init_message():
