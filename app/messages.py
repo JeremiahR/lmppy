@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple, Type, TypeAlias, cast
 
 from app.message_elements import (
     ChainHashElement,
+    GlobalFeaturesElement,
+    LocalFeaturesElement,
     MessageTypeElement,
     PointElement,
     RemainderElement,
@@ -32,7 +34,7 @@ class MessageProperty(Enum):
     NODE_SIGNATURE_2 = "node_signature_2"
     BITCOIN_SIGNATURE_1 = "bitcoin_signature_1"
     BITCOIN_SIGNATURE_2 = "bitcoin_signature_2"
-    CHANNEL_FEATURES = "features"
+    CHANNEL_FEATURES = "channel_features"
     CHAIN_HASH = "chain_hash"
     SHORT_CHANNEL_ID = "short_channel_id"
     NODE_ID_1 = "node_id_1"
@@ -93,17 +95,28 @@ class Message:
             out.append(f"{key.value}: {property}")
         return f"{self.__class__.__name__}({', '.join(out)})"
 
+    def __getattr__(self, name: str):
+        """Fallback for dynamically created properties."""
+        try:
+            return self.properties[MessageProperty[name.upper()]]
+        except KeyError:
+            raise AttributeError(f"{name} not found")
+
     @property
-    def length(self):
-        return len(self.to_bytes())
+    def type_id(self):
+        return cast(MessageTypeElement, self.type).id
+
+    @property
+    def type_element(self):
+        return cast(MessageTypeElement, self.type).name
 
     @property
     def type_name(self):
-        return self.properties.get(MessageProperty.TYPE).name  # pyright: ignore
+        return self.name
 
     @property
-    def type_code(self):
-        return self.properties.get(MessageProperty.TYPE).id  # pyright: ignore
+    def length(self):
+        return len(self.to_bytes())
 
 
 class InitMessage(Message):
@@ -117,12 +130,16 @@ class InitMessage(Message):
         ]
 
     @property
-    def global_features(self) -> U16VarBytesElement:
-        return self.properties[MessageProperty.GLOBAL_FEATURES]  # pyright: ignore
+    def global_features(self):
+        return cast(
+            GlobalFeaturesElement, self.properties[MessageProperty.GLOBAL_FEATURES]
+        )
 
     @property
-    def local_features(self) -> U16VarBytesElement:
-        return self.properties[MessageProperty.LOCAL_FEATURES]  # pyright: ignore
+    def local_features(self):
+        return cast(
+            LocalFeaturesElement, self.properties[MessageProperty.LOCAL_FEATURES]
+        )
 
 
 class PingMessage(Message):
@@ -138,10 +155,7 @@ class PingMessage(Message):
 
     @property
     def num_pong_bytes(self):
-        num_pong_bytes = cast(
-            U16Element, self.properties[MessageProperty.NUM_PONG_BYTES]
-        )  # pyright: ignore
-        return num_pong_bytes.num_bytes
+        return cast(U16Element, self.properties[MessageProperty.NUM_PONG_BYTES])
 
     @classmethod
     def create(cls, num_pong_bytes: int, message: bytes):
@@ -169,8 +183,14 @@ class PongMessage(Message):
         ]
 
     @property
+    def ping_or_pong_bytes(self):
+        return cast(
+            U16VarBytesElement, self.properties[MessageProperty.PING_OR_PONG_BYTES]
+        )
+
+    @property
     def num_bytes(self):
-        return self.properties[MessageProperty.PING_OR_PONG_BYTES].num_bytes  # pyright: ignore
+        return self.ping_or_pong_bytes.num_bytes
 
     @classmethod
     def create_from_ping(cls, msg: PingMessage):
@@ -180,7 +200,8 @@ class PongMessage(Message):
             properties={
                 MessageProperty.TYPE: MessageTypeElement(id=19, name="pong"),
                 MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(
-                    msg.num_pong_bytes, data=b"0" * msg.num_pong_bytes
+                    msg.num_pong_bytes.num_bytes,
+                    data=b"0" * msg.num_pong_bytes.num_bytes,
                 ),
             },
         )
@@ -218,14 +239,6 @@ class GossipTimestampFilterMessage(Message):
             (MessageProperty.FIRST_TIMESTAMP, U32Element),
             (MessageProperty.TIMESTAMP_RANGE, U32Element),
         ]
-
-    @property
-    def first_timestamp(self):
-        return cast(U32Element, self.properties[MessageProperty.FIRST_TIMESTAMP]).value
-
-    @property
-    def timestamp_range(self):
-        return cast(U32Element, self.properties[MessageProperty.TIMESTAMP_RANGE]).value
 
 
 class QueryShortChannelIDsMessage(Message):

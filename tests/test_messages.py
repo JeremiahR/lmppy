@@ -17,7 +17,7 @@ def test_init_message():
     )
     m = MessageDecoder.from_bytes(input_bytes)
     assert type(m) is InitMessage
-    assert m.type_code == 16
+    assert m.type_id == 16
     assert m.type_name == "init"
     assert m.__str__() is not None, "Expected a non-empty string representation"
     assert m.length == 49
@@ -29,7 +29,7 @@ def test_init_message():
     # features.
     m = MessageDecoder.from_bytes(b"\x00\x10\x00\x00\x00\x01\xaa")
     assert type(m) is InitMessage
-    assert m.type_code == 16
+    assert m.type_id == 16
     assert m.type_name == "init"
     assert m.length == 7
     assert m.global_features.data == b""

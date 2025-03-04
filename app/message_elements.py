@@ -203,6 +203,14 @@ class U16VarBytesElement(SerializedElement):
         return self.num_bytes.to_bytes(2, byteorder="big") + bytes(self.data)
 
 
+class GlobalFeaturesElement(U16VarBytesElement):
+    pass
+
+
+class LocalFeaturesElement(U16VarBytesElement):
+    pass
+
+
 @dataclass
 class U16Element(SerializedElement):
     num_bytes: int

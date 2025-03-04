@@ -42,4 +42,4 @@ def test_generate_ping_response():
     ping = MessageDecoder.from_bytes(bytes.fromhex(msg_hex))
     assert type(ping) is PingMessage
     pong = PongMessage.create_from_ping(ping)
-    assert pong.num_bytes == ping.num_pong_bytes
+    assert pong.num_bytes == ping.num_pong_bytes.num_bytes
