@@ -16,6 +16,7 @@ from app.message_elements import (
     U16Element,
     U16VarBytesElement,
     U32Element,
+    U64Element,
 )
 
 
@@ -25,11 +26,11 @@ class MessageProperty(Enum):
     """
 
     TYPE = "type"
-    REMAINDER = "remainder"
     GLOBAL_FEATURES = "global_features"
     LOCAL_FEATURES = "local_features"
     NUM_PONG_BYTES = "num_pong_bytes"
     PING_OR_PONG_BYTES = "ping_or_pong_bytes"
+    SIGNATURE = "signature"
     NODE_SIGNATURE_1 = "node_signature_1"
     NODE_SIGNATURE_2 = "node_signature_2"
     BITCOIN_SIGNATURE_1 = "bitcoin_signature_1"
@@ -45,6 +46,15 @@ class MessageProperty(Enum):
     TIMESTAMP_RANGE = "timestamp_range"
     ENCODED_SHORT_CHANNEL_IDS = "encoded_short_ids"
     FULL_INFORMATION = "full_information"
+    TIMESTAMP = "timestamp"
+    MESSAGE_FLAGS = "message_flags"
+    CHANNEL_FLAGS = "channel_flags"
+    CLTV_EXPIRY_DELTA = "cltv_expiry_delta"
+    HTLC_MINIMUM_MSAT = "htlc_minimum_msat"
+    FEE_BASE_MSAT = "fee_base_msat"
+    FEE_PROPORTIONAL_MILLIONTHS = "fee_proportional_millionths"
+    HTLC_MAXIMUM_MSAT = "htlc_maximum_msat"
+    REMAINDER = "remainder"
 
 
 KeyedElement: TypeAlias = Tuple[MessageProperty, Type[SerializedElement]]
@@ -260,6 +270,28 @@ class ChannelAnnouncementMessage(Message):
     @property
     def bitcoin_key_2(self):
         return cast(PointElement, self.properties[MessageProperty.BITCOIN_KEY_2])
+
+
+class ChannelUpdateMessage(Message):
+    id = 258
+    name = "channel_update"
+
+    @classmethod
+    def features(cls) -> List[KeyedElement]:
+        # https://github.com/lightning/bolts/blob/master/07-routing-gossip.md#the-channel_update-message
+        return super().features() + [
+            (MessageProperty.SIGNATURE, SignatureElement),
+            (MessageProperty.CHAIN_HASH, ChainHashElement),
+            (MessageProperty.SHORT_CHANNEL_ID, ShortChannelIDElement),
+            (MessageProperty.TIMESTAMP, U32Element),
+            (MessageProperty.MESSAGE_FLAGS, SingleByteElement),
+            (MessageProperty.CHANNEL_FLAGS, SingleByteElement),
+            (MessageProperty.CLTV_EXPIRY_DELTA, U16Element),
+            (MessageProperty.HTLC_MINIMUM_MSAT, U64Element),
+            (MessageProperty.FEE_BASE_MSAT, U32Element),
+            (MessageProperty.FEE_PROPORTIONAL_MILLIONTHS, U32Element),
+            (MessageProperty.HTLC_MAXIMUM_MSAT, U64Element),
+        ]
 
 
 class GossipTimestampFilterMessage(Message):
