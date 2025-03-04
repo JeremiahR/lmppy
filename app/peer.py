@@ -1,10 +1,18 @@
 import asyncio
+import traceback
 
 from pyln.proto.primitives import PrivateKey, PublicKey
 from pyln.proto.wire import LightningConnection, connect
 
+from app.logger import logger
 from app.message_decoder import MessageDecoder
-from app.messages import GossipTimestampFilterMessage, Message, PingMessage, PongMessage
+from app.messages import (
+    GossipTimestampFilterMessage,
+    Message,
+    PingMessage,
+    PongMessage,
+    QueryChannelRangeMessage,
+)
 
 DEFAULT_PING_INTERVAL = 120
 
@@ -35,6 +43,7 @@ class PeerConnection:
 
     async def send(self, message: Message):
         """Adds a message to the outgoing queue"""
+        logger.info(f"{self} Adding message to outgoing queue: {message}")
         await self.outgoing_messages.put(message)
 
     async def receive_messages(self):
@@ -43,7 +52,8 @@ class PeerConnection:
             try:
                 data = await asyncio.to_thread(self.lc.read_message)
                 message = MessageDecoder.from_bytes(data)
-                print(f"{self} Received:", message)
+                await self.handle_inbound_message(message)
+                logger.info(f"{self} Received: {message}")
             except ValueError:  # deep error in pyln that we are ignoring for now
                 await asyncio.sleep(1)  # Avoid excessive looping
 
@@ -53,14 +63,18 @@ class PeerConnection:
             try:
                 msg = await self.outgoing_messages.get()
                 await asyncio.to_thread(self.lc.send_message, msg.to_bytes())
-                print(f"{self} Sent:", msg)
+                logger.info(f"{self} Sent: {msg}")
             except Exception as e:
-                print(f"{self} Error sending message: {e}")
+                logger.error(
+                    f"{self} Error sending message: {e}. Stack trace: {traceback.format_exc()}"
+                )
+                raise e
 
     async def ping_peer(self):
         """Sends a ping every DEFAULT_PING_INTERVAL seconds"""
         while self.running:
             ping = PingMessage.create(10, bytes.fromhex("aa"))
+            logger.info(f"{self} Sending ping")
             await self.send(ping)
             await asyncio.sleep(DEFAULT_PING_INTERVAL)
 
@@ -76,14 +90,22 @@ class PeerConnection:
         for task in self.tasks:
             task.cancel()
 
-    async def respond_to_message(self, message):
+    async def handle_inbound_message(self, message):
         if type(message) is PingMessage:
             pong = PongMessage.create_from_ping(message)
+            logger.info(f"{self} Sending pong")
             await self.send(pong)
-        if type(message) is GossipTimestampFilterMessage:
+        elif type(message) is GossipTimestampFilterMessage:
             # Use this to initiate a gossip request
-            pass
+            logger.info(
+                f"{self} Using GossipTimestampFilterMessage to initiate a QueryChannelRangeMessage"
+            )
+            query_range_message = QueryChannelRangeMessage.create(
+                message.chain_hash.to_bytes(), 0, 10**6
+            )
+            await self.send(query_range_message)
 
     def send_init(self):
         # Send an init message, with no global features, and 0b10101010 as local features.
+        logger.info(f"{self} Sending hardcoded init message")
         self.lc.send_message(b"\x00\x10\x00\x00\x00\x01\xaa")

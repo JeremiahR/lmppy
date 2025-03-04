@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple, Type, TypeAlias, cast
+from typing import Dict, List, Self, Tuple, Type, TypeAlias, cast
 
 from app.message_elements import (
     ChainHashElement,
@@ -377,6 +377,19 @@ class QueryChannelRangeMessage(Message):
             (MessageProperty.FIRST_BLOCK_NUM, U32Element),
             (MessageProperty.NUMBER_OF_BLOCKS, U32Element),
         ]
+
+    @classmethod
+    def create(cls, chain_hash: bytes, first_block_num: int, number_of_blocks: int) -> Self:
+        return cls(
+            263,
+            "query_channel_range",
+            {
+                MessageProperty.TYPE: MessageTypeElement(263, "query_channel_range"),
+                MessageProperty.CHAIN_HASH: ChainHashElement(chain_hash),
+                MessageProperty.FIRST_BLOCK_NUM: U32Element(first_block_num),
+                MessageProperty.NUMBER_OF_BLOCKS: U32Element(number_of_blocks),
+            },
+        )
 
     @property
     def chain_hash(self):
