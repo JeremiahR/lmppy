@@ -202,15 +202,15 @@ class U16Element(SerializedElement):
 
 @dataclass
 class U32Element(SerializedElement):
-    num_bytes: int
+    value: int
 
     @classmethod
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
-        num_bytes = int.from_bytes(data[:4], byteorder="big")
-        return (cls(num_bytes), data[4:])
+        value = int.from_bytes(data[:4], byteorder="big")
+        return (cls(value), data[4:])
 
     def to_bytes(self) -> bytes:
-        return self.num_bytes.to_bytes(4, byteorder="big")
+        return self.value.to_bytes(4, byteorder="big")
 
 
 @dataclass

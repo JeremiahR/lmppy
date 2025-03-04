@@ -215,3 +215,11 @@ class GossipTimestampFilterMessage(Message):
             (MessageProperty.FIRST_TIMESTAMP, U32Element),
             (MessageProperty.TIMESTAMP_RANGE, U32Element),
         ]
+
+    @property
+    def first_timestamp(self):
+        return cast(U32Element, self.properties[MessageProperty.FIRST_TIMESTAMP]).value
+
+    @property
+    def timestamp_range(self):
+        return cast(U32Element, self.properties[MessageProperty.TIMESTAMP_RANGE]).value

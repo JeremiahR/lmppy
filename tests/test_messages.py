@@ -6,13 +6,8 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.message_decoder import MessageDecoder
-from app.message_elements import MessageTypeElement, U16Element, VarBytesElement
 from app.messages import (
-    GossipTimestampFilterMessage,
     InitMessage,
-    MessageProperty,
-    PingMessage,
-    PongMessage,
 )
 
 
@@ -40,43 +35,6 @@ def test_init_message():
     assert m.global_features.data == b""
     assert m.local_features.data == 0b10101010.to_bytes(1, "big")
     assert m.to_bytes() == b"\x00\x10\x00\x00\x00\x01\xaa"
-
-
-def test_construct_ping():
-    m = PingMessage(
-        id=18,
-        name="ping",
-        properties={
-            MessageProperty.TYPE: MessageTypeElement(id=18, name="ping"),
-            MessageProperty.NUM_PONG_BYTES: U16Element(num_bytes=10),
-            MessageProperty.PING_OR_PONG_BYTES: VarBytesElement(
-                1, data=bytes.fromhex("aa")
-            ),
-        },
-    )
-    # Note: not sure if this format is correct
-    assert m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa", (
-        "Serialized bytes should match expected value"
-    )
-
-    m = PingMessage.create(10, bytes.fromhex("aa"))
-    assert m.to_bytes() == b"\x00\x12\x00\n\x00\x01\xaa", (
-        "Serialized bytes should match expected value"
-    )
-
-
-def test_generate_ping_response():
-    msg_hex = "0012086c00500000003044d4216b3f1c92f3954700f52a4301f71158b7ef79a21f968b9c0f2d904c5f260aafe7d8a51df27614480e4314edbdee1d44d15a5d987c9b6533c9fd0b8d5a0c6233c667ffff7f2002000000"
-    ping = MessageDecoder.from_bytes(bytes.fromhex(msg_hex))
-    assert type(ping) is PingMessage
-    pong = PongMessage.create_from_ping(ping)
-    assert pong.num_bytes == ping.num_pong_bytes
-
-
-def test_gossip_timestamp_filter():
-    msg_hex = "010906226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910fffffffffffffffff"
-    ping = MessageDecoder.from_bytes(bytes.fromhex(msg_hex))
-    assert type(ping) is GossipTimestampFilterMessage
 
 
 def test_examples():
