@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 from datetime import datetime
 
@@ -11,22 +12,38 @@ from app.messages import PingMessage
 from app.peer import Peer
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(
         prog="lightning-mini-peer",
         description="A minimal lightning peer for testing and development",
     )
     parser.add_argument("host", help="the peer address in pubkey@host:port format")
-    args = parser.parse_args()
-
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
+    return parser.parse_args()
+
+
+def generate_private_key():
+    """Generate a new private key if one does not exist, otherwise return the existing one."""
+    if os.path.exists("private_key.pem"):
+        with open("private_key.pem", "rb") as f:
+            return PrivateKey(f.read())
+    else:
+        pk = PrivateKey(SigningKey.generate(curve=SECP256k1).to_string())
+        with open("private_key.pem", "wb") as f:
+            f.write(pk.serializeCompressed())
+            f.close()
+        return pk
+
+
+def main():
+    args = parse_args()
+    private_key = generate_private_key()
     peer = Peer.from_string(args.host)
 
     # Create an ephemeral keypair and connect to peer
     print(f"Connecting to {args.host}")
-    private_key = PrivateKey(SigningKey.generate(curve=SECP256k1).to_string())
     lc = connect(private_key, peer.node_id, peer.host, port=peer.port)  # pyright: ignore
 
     # Send an init message, with no global features, and 0b10101010 as local
