@@ -3,13 +3,13 @@ from enum import Enum
 from typing import Dict, List, Tuple, Type, TypeAlias, cast
 
 from app.message_elements import (
-    Fixed8BytesElement,
-    Fixed32BytesElement,
-    Fixed64BytesElement,
+    ChainHashElement,
     MessageTypeElement,
     PointElement,
     RemainderElement,
     SerializedElement,
+    ShortChannelIDElement,
+    SignatureElement,
     U16Element,
     VarBytesElement,
 )
@@ -187,13 +187,13 @@ class ChannelAnnouncement(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (MessageProperty.NODE_SIGNATURE_1, Fixed64BytesElement),
-            (MessageProperty.NODE_SIGNATURE_2, Fixed64BytesElement),
-            (MessageProperty.BITCOIN_SIGNATURE_1, Fixed64BytesElement),
-            (MessageProperty.BITCOIN_SIGNATURE_2, Fixed64BytesElement),
+            (MessageProperty.NODE_SIGNATURE_1, SignatureElement),
+            (MessageProperty.NODE_SIGNATURE_2, SignatureElement),
+            (MessageProperty.BITCOIN_SIGNATURE_1, SignatureElement),
+            (MessageProperty.BITCOIN_SIGNATURE_2, SignatureElement),
             (MessageProperty.CHANNEL_FEATURES, VarBytesElement),
-            (MessageProperty.CHAIN_HASH, Fixed32BytesElement),
-            (MessageProperty.SHORT_CHANNEL_ID, Fixed8BytesElement),
+            (MessageProperty.CHAIN_HASH, ChainHashElement),
+            (MessageProperty.SHORT_CHANNEL_ID, ShortChannelIDElement),
             (MessageProperty.NODE_ID_1, PointElement),
             (MessageProperty.NODE_ID_2, PointElement),
             (MessageProperty.BITCOIN_KEY_1, PointElement),

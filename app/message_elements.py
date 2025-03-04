@@ -108,6 +108,10 @@ class Fixed8BytesElement(SerializedElement):
         return bytes(self.data)
 
 
+class ShortChannelIDElement(Fixed8BytesElement):
+    pass
+
+
 @dataclass
 class Fixed32BytesElement(SerializedElement):
     """A fixed 32 byte element."""
@@ -122,6 +126,10 @@ class Fixed32BytesElement(SerializedElement):
 
     def to_bytes(self) -> bytes:
         return bytes(self.data)
+
+
+class ChainHashElement(Fixed32BytesElement):
+    pass
 
 
 @dataclass
@@ -158,6 +166,10 @@ class Fixed64BytesElement(SerializedElement):
 
     def to_bytes(self) -> bytes:
         return bytes(self.data)
+
+
+class SignatureElement(Fixed64BytesElement):
+    pass
 
 
 @dataclass
