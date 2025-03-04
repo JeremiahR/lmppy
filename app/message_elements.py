@@ -93,6 +93,22 @@ class MessageTypeElement(SerializedElement):
 
 
 @dataclass
+class SingleByteElement(SerializedElement):
+    """A single byte element."""
+
+    key = "single_byte_element"
+    data: bytes
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        signature = data[:1]
+        return (cls(data=signature), data[1:])
+
+    def to_bytes(self) -> bytes:
+        return bytes(self.data)
+
+
+@dataclass
 class Fixed8BytesElement(SerializedElement):
     """A fixed 8 byte element."""
 
@@ -173,7 +189,7 @@ class SignatureElement(Fixed64BytesElement):
 
 
 @dataclass
-class VarBytesElement(SerializedElement):
+class U16VarBytesElement(SerializedElement):
     num_bytes: int
     data: bytes
 

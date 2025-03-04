@@ -6,7 +6,7 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.message_decoder import MessageDecoder
-from app.message_elements import MessageTypeElement, U16Element, VarBytesElement
+from app.message_elements import MessageTypeElement, U16Element, U16VarBytesElement
 from app.messages import (
     MessageProperty,
     PingMessage,
@@ -21,7 +21,7 @@ def test_construct_ping():
         properties={
             MessageProperty.TYPE: MessageTypeElement(id=18, name="ping"),
             MessageProperty.NUM_PONG_BYTES: U16Element(num_bytes=10),
-            MessageProperty.PING_OR_PONG_BYTES: VarBytesElement(
+            MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(
                 1, data=bytes.fromhex("aa")
             ),
         },

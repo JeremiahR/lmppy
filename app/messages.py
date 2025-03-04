@@ -10,9 +10,10 @@ from app.message_elements import (
     SerializedElement,
     ShortChannelIDElement,
     SignatureElement,
+    SingleByteElement,
     U16Element,
+    U16VarBytesElement,
     U32Element,
-    VarBytesElement,
 )
 
 
@@ -40,6 +41,8 @@ class MessageProperty(Enum):
     BITCOIN_KEY_2 = "bitcoin_key_2"
     FIRST_TIMESTAMP = "first_timestamp"
     TIMESTAMP_RANGE = "timestamp_range"
+    ENCODED_SHORT_CHANNEL_IDS = "encoded_short_ids"
+    FULL_INFORMATION = "full_information"
 
 
 KeyedElement: TypeAlias = Tuple[MessageProperty, Type[SerializedElement]]
@@ -109,16 +112,16 @@ class InitMessage(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (MessageProperty.GLOBAL_FEATURES, VarBytesElement),
-            (MessageProperty.LOCAL_FEATURES, VarBytesElement),
+            (MessageProperty.GLOBAL_FEATURES, U16VarBytesElement),
+            (MessageProperty.LOCAL_FEATURES, U16VarBytesElement),
         ]
 
     @property
-    def global_features(self) -> VarBytesElement:
+    def global_features(self) -> U16VarBytesElement:
         return self.properties[MessageProperty.GLOBAL_FEATURES]  # pyright: ignore
 
     @property
-    def local_features(self) -> VarBytesElement:
+    def local_features(self) -> U16VarBytesElement:
         return self.properties[MessageProperty.LOCAL_FEATURES]  # pyright: ignore
 
 
@@ -130,7 +133,7 @@ class PingMessage(Message):
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
             (MessageProperty.NUM_PONG_BYTES, U16Element),
-            (MessageProperty.PING_OR_PONG_BYTES, VarBytesElement),
+            (MessageProperty.PING_OR_PONG_BYTES, U16VarBytesElement),
         ]
 
     @property
@@ -148,7 +151,7 @@ class PingMessage(Message):
             properties={
                 MessageProperty.TYPE: MessageTypeElement(id=18, name="ping"),
                 MessageProperty.NUM_PONG_BYTES: U16Element(num_bytes=num_pong_bytes),
-                MessageProperty.PING_OR_PONG_BYTES: VarBytesElement(
+                MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(
                     len(message), data=message
                 ),
             },
@@ -162,7 +165,7 @@ class PongMessage(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (MessageProperty.PING_OR_PONG_BYTES, VarBytesElement),
+            (MessageProperty.PING_OR_PONG_BYTES, U16VarBytesElement),
         ]
 
     @property
@@ -176,7 +179,7 @@ class PongMessage(Message):
             name="pong",
             properties={
                 MessageProperty.TYPE: MessageTypeElement(id=19, name="pong"),
-                MessageProperty.PING_OR_PONG_BYTES: VarBytesElement(
+                MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(
                     msg.num_pong_bytes, data=b"0" * msg.num_pong_bytes
                 ),
             },
@@ -194,7 +197,7 @@ class ChannelAnnouncementMessage(Message):
             (MessageProperty.NODE_SIGNATURE_2, SignatureElement),
             (MessageProperty.BITCOIN_SIGNATURE_1, SignatureElement),
             (MessageProperty.BITCOIN_SIGNATURE_2, SignatureElement),
-            (MessageProperty.CHANNEL_FEATURES, VarBytesElement),
+            (MessageProperty.CHANNEL_FEATURES, U16VarBytesElement),
             (MessageProperty.CHAIN_HASH, ChainHashElement),
             (MessageProperty.SHORT_CHANNEL_ID, ShortChannelIDElement),
             (MessageProperty.NODE_ID_1, PointElement),
@@ -223,3 +226,27 @@ class GossipTimestampFilterMessage(Message):
     @property
     def timestamp_range(self):
         return cast(U32Element, self.properties[MessageProperty.TIMESTAMP_RANGE]).value
+
+
+class QueryShortChannelIDsMessage(Message):
+    id = 261
+    name = "query_short_channel_ids"
+
+    @classmethod
+    def features(cls) -> List[KeyedElement]:
+        return super().features() + [
+            (MessageProperty.CHAIN_HASH, ChainHashElement),
+            (MessageProperty.ENCODED_SHORT_CHANNEL_IDS, U16VarBytesElement),
+        ]
+
+
+class ReplyShortChannelIDsMessage(Message):
+    id = 262
+    name = "reply_short_channel_ids"
+
+    @classmethod
+    def features(cls) -> List[KeyedElement]:
+        return super().features() + [
+            (MessageProperty.CHAIN_HASH, ChainHashElement),
+            (MessageProperty.FULL_INFORMATION, SingleByteElement),
+        ]
