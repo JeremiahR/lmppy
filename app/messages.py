@@ -180,7 +180,7 @@ class PongMessage(Message):
         )
 
 
-class ChannelAnnouncement(Message):
+class ChannelAnnouncementMessage(Message):
     id = 256
     name = "channel_announcement"
 
@@ -199,18 +199,3 @@ class ChannelAnnouncement(Message):
             (MessageProperty.BITCOIN_KEY_1, PointElement),
             (MessageProperty.BITCOIN_KEY_2, PointElement),
         ]
-
-
-class MessageDecoder:
-    @classmethod
-    def from_bytes(cls, data: bytes):
-        message_type = int.from_bytes(data[:2], byteorder="big")
-        # TODO: a cleaner way to decode, such as a global registry
-        if message_type == 16:
-            return InitMessage.from_bytes(data)
-        elif message_type == 18:
-            return PingMessage.from_bytes(data)
-        elif message_type == 19:
-            return PongMessage.from_bytes(data)
-        else:
-            return Message.from_bytes(data)
