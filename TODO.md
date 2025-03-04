@@ -2,29 +2,8 @@
 
 ## Todos
 
-- Async -> send pings in another thread, so that can connect to > 1 node, and chat w/ node while pings are going.
-- Recieve pings and respond (only sends pings now).
-- Support node_announcement and discovery.
-- Rework serialization (more than one signature, etc.)
-    - starts as a list of named values
-    - minimal abstraction
-    - can create constructors later, but devs will likely value the composability
-    - channel_announcement as an example
-      [message_type]
-      [signature:node_signature_1]
-      [signature:node_signature_2]
-      [signature:bitcoin_signature_1]
-      [signature:bitcoin_signature_2]
-      [u16:len]
-      [len*byte:features]
-      [chain_hash:chain_hash]
-      [short_channel_id:short_channel_id]
-      [point:node_id_1]
-      [point:node_id_2]
-      [point:bitcoin_key_1]
-      [point:bitcoin_key_2]
+- Implement gossip to learn about new nodes and channels.
 - Learn about new nodes and connect to them -> build graph outward.
-- Potentially a UI with [textual](https://textual.textualize.io/), similar to [lazydocker](https://github.com/jesseduffield/lazydocker).
 
 ## Completed
 
