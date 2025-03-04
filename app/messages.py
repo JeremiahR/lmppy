@@ -15,7 +15,7 @@ from app.message_elements import (
 )
 
 
-class ElementKey(Enum):
+class MessageProperty(Enum):
     """
     An ElementKey represents the unique names for datatypes which are encoded in documentation, for example see [channel_announcement](https://github.com/lightning/bolts/blob/master/07-routing-gossip.md#the-channel_announcement-message) in Bolt 7.
     """
@@ -39,8 +39,8 @@ class ElementKey(Enum):
     BITCOIN_KEY_2 = "bitcoin_key_2"
 
 
-KeyedElement: TypeAlias = Tuple[ElementKey, Type[SerializedElement]]
-MessagePropertiesDict: TypeAlias = Dict[ElementKey, SerializedElement]
+KeyedElement: TypeAlias = Tuple[MessageProperty, Type[SerializedElement]]
+MessagePropertiesDict: TypeAlias = Dict[MessageProperty, SerializedElement]
 
 
 @dataclass
@@ -52,7 +52,7 @@ class Message:
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return [
-            (ElementKey.TYPE, MessageTypeElement),
+            (MessageProperty.TYPE, MessageTypeElement),
         ]
 
     @classmethod
@@ -67,8 +67,8 @@ class Message:
                 id: int = el.id
                 name: str = el.name
         if len(chunked) > 0:
-            properties[ElementKey.REMAINDER], chunked = RemainderElement.from_bytes(
-                chunked
+            properties[MessageProperty.REMAINDER], chunked = (
+                RemainderElement.from_bytes(chunked)
             )
         assert len(chunked) == 0, f"Unexpected data left: {chunked}"
         return cls(id, name, properties)  # pyright: ignore
@@ -77,8 +77,8 @@ class Message:
         data = b""
         for key, feature in self.features():
             data += self.properties[key].to_bytes()
-        if ElementKey.REMAINDER in self.properties:
-            data += self.properties[ElementKey.REMAINDER].to_bytes()
+        if MessageProperty.REMAINDER in self.properties:
+            data += self.properties[MessageProperty.REMAINDER].to_bytes()
         return data
 
     def __str__(self):
@@ -93,11 +93,11 @@ class Message:
 
     @property
     def type_name(self):
-        return self.properties.get(ElementKey.TYPE).name  # pyright: ignore
+        return self.properties.get(MessageProperty.TYPE).name  # pyright: ignore
 
     @property
     def type_code(self):
-        return self.properties.get(ElementKey.TYPE).id  # pyright: ignore
+        return self.properties.get(MessageProperty.TYPE).id  # pyright: ignore
 
 
 class InitMessage(Message):
@@ -106,17 +106,17 @@ class InitMessage(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (ElementKey.GLOBAL_FEATURES, VarBytesElement),
-            (ElementKey.LOCAL_FEATURES, VarBytesElement),
+            (MessageProperty.GLOBAL_FEATURES, VarBytesElement),
+            (MessageProperty.LOCAL_FEATURES, VarBytesElement),
         ]
 
     @property
     def global_features(self) -> VarBytesElement:
-        return self.properties[ElementKey.GLOBAL_FEATURES]  # pyright: ignore
+        return self.properties[MessageProperty.GLOBAL_FEATURES]  # pyright: ignore
 
     @property
     def local_features(self) -> VarBytesElement:
-        return self.properties[ElementKey.LOCAL_FEATURES]  # pyright: ignore
+        return self.properties[MessageProperty.LOCAL_FEATURES]  # pyright: ignore
 
 
 class PingMessage(Message):
@@ -126,13 +126,15 @@ class PingMessage(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (ElementKey.NUM_PONG_BYTES, U16Element),
-            (ElementKey.PING_OR_PONG_BYTES, VarBytesElement),
+            (MessageProperty.NUM_PONG_BYTES, U16Element),
+            (MessageProperty.PING_OR_PONG_BYTES, VarBytesElement),
         ]
 
     @property
     def num_pong_bytes(self):
-        num_pong_bytes = cast(U16Element, self.properties[ElementKey.NUM_PONG_BYTES])  # pyright: ignore
+        num_pong_bytes = cast(
+            U16Element, self.properties[MessageProperty.NUM_PONG_BYTES]
+        )  # pyright: ignore
         return num_pong_bytes.num_bytes
 
     @classmethod
@@ -141,9 +143,9 @@ class PingMessage(Message):
             id=18,
             name="ping",
             properties={
-                ElementKey.TYPE: MessageTypeElement(id=18, name="ping"),
-                ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=num_pong_bytes),
-                ElementKey.PING_OR_PONG_BYTES: VarBytesElement(
+                MessageProperty.TYPE: MessageTypeElement(id=18, name="ping"),
+                MessageProperty.NUM_PONG_BYTES: U16Element(num_bytes=num_pong_bytes),
+                MessageProperty.PING_OR_PONG_BYTES: VarBytesElement(
                     len(message), data=message
                 ),
             },
@@ -157,12 +159,12 @@ class PongMessage(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (ElementKey.PING_OR_PONG_BYTES, VarBytesElement),
+            (MessageProperty.PING_OR_PONG_BYTES, VarBytesElement),
         ]
 
     @property
     def num_bytes(self):
-        return self.properties[ElementKey.PING_OR_PONG_BYTES].num_bytes  # pyright: ignore
+        return self.properties[MessageProperty.PING_OR_PONG_BYTES].num_bytes  # pyright: ignore
 
     @classmethod
     def create_from_ping(cls, msg: PingMessage):
@@ -170,8 +172,8 @@ class PongMessage(Message):
             id=19,
             name="pong",
             properties={
-                ElementKey.TYPE: MessageTypeElement(id=19, name="pong"),
-                ElementKey.PING_OR_PONG_BYTES: VarBytesElement(
+                MessageProperty.TYPE: MessageTypeElement(id=19, name="pong"),
+                MessageProperty.PING_OR_PONG_BYTES: VarBytesElement(
                     msg.num_pong_bytes, data=b"0" * msg.num_pong_bytes
                 ),
             },
@@ -185,17 +187,17 @@ class ChannelAnnouncement(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (ElementKey.NODE_SIGNATURE_1, Fixed64BytesElement),
-            (ElementKey.NODE_SIGNATURE_2, Fixed64BytesElement),
-            (ElementKey.BITCOIN_SIGNATURE_1, Fixed64BytesElement),
-            (ElementKey.BITCOIN_SIGNATURE_2, Fixed64BytesElement),
-            (ElementKey.CHANNEL_FEATURES, VarBytesElement),
-            (ElementKey.CHAIN_HASH, Fixed32BytesElement),
-            (ElementKey.SHORT_CHANNEL_ID, Fixed8BytesElement),
-            (ElementKey.NODE_ID_1, PointElement),
-            (ElementKey.NODE_ID_2, PointElement),
-            (ElementKey.BITCOIN_KEY_1, PointElement),
-            (ElementKey.BITCOIN_KEY_2, PointElement),
+            (MessageProperty.NODE_SIGNATURE_1, Fixed64BytesElement),
+            (MessageProperty.NODE_SIGNATURE_2, Fixed64BytesElement),
+            (MessageProperty.BITCOIN_SIGNATURE_1, Fixed64BytesElement),
+            (MessageProperty.BITCOIN_SIGNATURE_2, Fixed64BytesElement),
+            (MessageProperty.CHANNEL_FEATURES, VarBytesElement),
+            (MessageProperty.CHAIN_HASH, Fixed32BytesElement),
+            (MessageProperty.SHORT_CHANNEL_ID, Fixed8BytesElement),
+            (MessageProperty.NODE_ID_1, PointElement),
+            (MessageProperty.NODE_ID_2, PointElement),
+            (MessageProperty.BITCOIN_KEY_1, PointElement),
+            (MessageProperty.BITCOIN_KEY_2, PointElement),
         ]
 
 

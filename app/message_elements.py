@@ -46,11 +46,16 @@ LIGHTNING_MESSAGE_TYPES = {
     134: "update_fee",
     135: "update_fail_malformed_htlc",
     136: "channel_reestablish",
-    # Gossip & Network Announcements
+    # Network Announcements
     256: "channel_announcement",
     257: "node_announcement",
     258: "channel_update",
     259: "announcement_signatures",
+    # Gossip
+    261: "query_short_channel_ids",
+    262: "reply_short_channel_ids_end",
+    263: "query_channel_range",
+    264: "reply_channel_range",
     265: "gossip_timestamp_filter",
 }
 

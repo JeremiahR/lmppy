@@ -7,9 +7,9 @@ sys.path.insert(0, str(project_root))
 
 from app.message_elements import MessageTypeElement, U16Element, VarBytesElement
 from app.messages import (
-    ElementKey,
     InitMessage,
     MessageDecoder,
+    MessageProperty,
     PingMessage,
     PongMessage,
 )
@@ -46,9 +46,11 @@ def test_construct_ping():
         id=18,
         name="ping",
         properties={
-            ElementKey.TYPE: MessageTypeElement(id=18, name="ping"),
-            ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=10),
-            ElementKey.PING_OR_PONG_BYTES: VarBytesElement(1, data=bytes.fromhex("aa")),
+            MessageProperty.TYPE: MessageTypeElement(id=18, name="ping"),
+            MessageProperty.NUM_PONG_BYTES: U16Element(num_bytes=10),
+            MessageProperty.PING_OR_PONG_BYTES: VarBytesElement(
+                1, data=bytes.fromhex("aa")
+            ),
         },
     )
     # Note: not sure if this format is correct
