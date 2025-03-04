@@ -4,7 +4,7 @@ from pyln.proto.primitives import PrivateKey, PublicKey
 from pyln.proto.wire import LightningConnection, connect
 
 from app.message_decoder import MessageDecoder
-from app.messages import Message, PingMessage
+from app.messages import GossipTimestampFilterMessage, Message, PingMessage, PongMessage
 
 DEFAULT_PING_INTERVAL = 120
 
@@ -75,6 +75,14 @@ class PeerConnection:
         self.running = False
         for task in self.tasks:
             task.cancel()
+
+    async def respond_to_message(self, message):
+        if type(message) is PingMessage:
+            pong = PongMessage.create_from_ping(message)
+            await self.send(pong)
+        if type(message) is GossipTimestampFilterMessage:
+            # Use this to initiate a gossip request
+            pass
 
     def send_init(self):
         # Send an init message, with no global features, and 0b10101010 as local features.
