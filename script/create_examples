@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Ensure the data directory exists
+mkdir -p data
+
+# Create the examples file if it doesn't exist
+touch data/examples
+
+# Temporary file to store new unique lines
+temp_file=$(mktemp)
+
+# Extract unique lines from all .log files and store in temp_file
+cat *.log 2>/dev/null | sort -u > "$temp_file"
+
+# Merge with existing data/examples while keeping unique lines
+sort -u "$temp_file" data/examples -o data/examples
+
+# Cleanup temporary file
+rm "$temp_file"

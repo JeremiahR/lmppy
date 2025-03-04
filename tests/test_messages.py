@@ -70,3 +70,12 @@ def test_generate_ping_response():
     assert type(ping) is PingMessage
     pong = PongMessage.create_from_ping(ping)
     assert pong.num_bytes == ping.num_pong_bytes
+
+
+def test_examples():
+    """Tests that data/examples parse properly."""
+    f = open("data/examples", "r")
+    for line in f:
+        msg = MessageDecoder.from_bytes(bytes.fromhex(line))
+        assert msg.id is not None
+        assert msg.name is not None
