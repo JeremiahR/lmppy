@@ -3,21 +3,40 @@ from enum import Enum
 from typing import Dict, List, Tuple, Type, TypeAlias, cast
 
 from app.message_elements import (
+    Fixed8BytesElement,
+    Fixed32BytesElement,
+    Fixed64BytesElement,
     MessageTypeElement,
+    PointElement,
     RemainderElement,
     SerializedElement,
-    SizedBytesElement,
     U16Element,
+    VarBytesElement,
 )
 
 
 class ElementKey(Enum):
+    """
+    An ElementKey represents the unique names for datatypes which are encoded in documentation, for example see [channel_announcement](https://github.com/lightning/bolts/blob/master/07-routing-gossip.md#the-channel_announcement-message) in Bolt 7.
+    """
+
     TYPE = "type"
     REMAINDER = "remainder"
     GLOBAL_FEATURES = "global_features"
     LOCAL_FEATURES = "local_features"
     NUM_PONG_BYTES = "num_pong_bytes"
     PING_OR_PONG_BYTES = "ping_or_pong_bytes"
+    NODE_SIGNATURE_1 = "node_signature_1"
+    NODE_SIGNATURE_2 = "node_signature_2"
+    BITCOIN_SIGNATURE_1 = "bitcoin_signature_1"
+    BITCOIN_SIGNATURE_2 = "bitcoin_signature_2"
+    CHANNEL_FEATURES = "features"
+    CHAIN_HASH = "chain_hash"
+    SHORT_CHANNEL_ID = "short_channel_id"
+    NODE_ID_1 = "node_id_1"
+    NODE_ID_2 = "node_id_2"
+    BITCOIN_KEY_1 = "bitcoin_key_1"
+    BITCOIN_KEY_2 = "bitcoin_key_2"
 
 
 KeyedElement: TypeAlias = Tuple[ElementKey, Type[SerializedElement]]
@@ -87,16 +106,16 @@ class InitMessage(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (ElementKey.GLOBAL_FEATURES, SizedBytesElement),
-            (ElementKey.LOCAL_FEATURES, SizedBytesElement),
+            (ElementKey.GLOBAL_FEATURES, VarBytesElement),
+            (ElementKey.LOCAL_FEATURES, VarBytesElement),
         ]
 
     @property
-    def global_features(self) -> SizedBytesElement:
+    def global_features(self) -> VarBytesElement:
         return self.properties[ElementKey.GLOBAL_FEATURES]  # pyright: ignore
 
     @property
-    def local_features(self) -> SizedBytesElement:
+    def local_features(self) -> VarBytesElement:
         return self.properties[ElementKey.LOCAL_FEATURES]  # pyright: ignore
 
 
@@ -108,7 +127,7 @@ class PingMessage(Message):
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
             (ElementKey.NUM_PONG_BYTES, U16Element),
-            (ElementKey.PING_OR_PONG_BYTES, SizedBytesElement),
+            (ElementKey.PING_OR_PONG_BYTES, VarBytesElement),
         ]
 
     @property
@@ -124,7 +143,7 @@ class PingMessage(Message):
             properties={
                 ElementKey.TYPE: MessageTypeElement(id=18, name="ping"),
                 ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=num_pong_bytes),
-                ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(
+                ElementKey.PING_OR_PONG_BYTES: VarBytesElement(
                     len(message), data=message
                 ),
             },
@@ -138,7 +157,7 @@ class PongMessage(Message):
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
-            (ElementKey.PING_OR_PONG_BYTES, SizedBytesElement),
+            (ElementKey.PING_OR_PONG_BYTES, VarBytesElement),
         ]
 
     @property
@@ -152,11 +171,32 @@ class PongMessage(Message):
             name="pong",
             properties={
                 ElementKey.TYPE: MessageTypeElement(id=19, name="pong"),
-                ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(
+                ElementKey.PING_OR_PONG_BYTES: VarBytesElement(
                     msg.num_pong_bytes, data=b"0" * msg.num_pong_bytes
                 ),
             },
         )
+
+
+class ChannelAnnouncement(Message):
+    id = 256
+    name = "channel_announcement"
+
+    @classmethod
+    def features(cls) -> List[KeyedElement]:
+        return super().features() + [
+            (ElementKey.NODE_SIGNATURE_1, Fixed64BytesElement),
+            (ElementKey.NODE_SIGNATURE_2, Fixed64BytesElement),
+            (ElementKey.BITCOIN_SIGNATURE_1, Fixed64BytesElement),
+            (ElementKey.BITCOIN_SIGNATURE_2, Fixed64BytesElement),
+            (ElementKey.CHANNEL_FEATURES, VarBytesElement),
+            (ElementKey.CHAIN_HASH, Fixed32BytesElement),
+            (ElementKey.SHORT_CHANNEL_ID, Fixed8BytesElement),
+            (ElementKey.NODE_ID_1, PointElement),
+            (ElementKey.NODE_ID_2, PointElement),
+            (ElementKey.BITCOIN_KEY_1, PointElement),
+            (ElementKey.BITCOIN_KEY_2, PointElement),
+        ]
 
 
 class MessageDecoder:

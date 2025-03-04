@@ -5,7 +5,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.message_elements import MessageTypeElement, SizedBytesElement, U16Element
+from app.message_elements import MessageTypeElement, U16Element, VarBytesElement
 from app.messages import (
     ElementKey,
     InitMessage,
@@ -48,9 +48,7 @@ def test_construct_ping():
         properties={
             ElementKey.TYPE: MessageTypeElement(id=18, name="ping"),
             ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=10),
-            ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(
-                1, data=bytes.fromhex("aa")
-            ),
+            ElementKey.PING_OR_PONG_BYTES: VarBytesElement(1, data=bytes.fromhex("aa")),
         },
     )
     # Note: not sure if this format is correct

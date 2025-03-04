@@ -88,7 +88,75 @@ class MessageTypeElement(SerializedElement):
 
 
 @dataclass
-class SizedBytesElement(SerializedElement):
+class Fixed8BytesElement(SerializedElement):
+    """A fixed 8 byte element."""
+
+    key = "bytes_8_element"
+    data: bytes
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        signature = data[:8]
+        return (cls(data=signature), data[8:])
+
+    def to_bytes(self) -> bytes:
+        return bytes(self.data)
+
+
+@dataclass
+class Fixed32BytesElement(SerializedElement):
+    """A fixed 32 byte element."""
+
+    key = "bytes_32_element"
+    data: bytes
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        signature = data[:32]
+        return (cls(data=signature), data[32:])
+
+    def to_bytes(self) -> bytes:
+        return bytes(self.data)
+
+
+@dataclass
+class Fixed33BytesElement(SerializedElement):
+    """A fixed 33 byte element."""
+
+    key = "bytes_33_element"
+    data: bytes
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        signature = data[:33]
+        return (cls(data=signature), data[33:])
+
+    def to_bytes(self) -> bytes:
+        return bytes(self.data)
+
+
+class PointElement(Fixed33BytesElement):
+    pass
+
+
+@dataclass
+class Fixed64BytesElement(SerializedElement):
+    """A fixed 64 byte element."""
+
+    key = "bytes_64_element"
+    data: bytes
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        signature = data[:64]
+        return (cls(data=signature), data[64:])
+
+    def to_bytes(self) -> bytes:
+        return bytes(self.data)
+
+
+@dataclass
+class VarBytesElement(SerializedElement):
     num_bytes: int
     data: bytes
 
