@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple, Type, TypeAlias, cast
 
 from app.message_elements import (
     ChainHashElement,
+    EncodedShortChannelIdsElement,
     GlobalFeaturesElement,
     LocalFeaturesElement,
     MessageTypeElement,
@@ -55,6 +56,9 @@ class MessageProperty(Enum):
     FEE_PROPORTIONAL_MILLIONTHS = "fee_proportional_millionths"
     HTLC_MAXIMUM_MSAT = "htlc_maximum_msat"
     REMAINDER = "remainder"
+    FIRST_BLOCK_NUM = "first_block_num"
+    NUMBER_OF_BLOCKS = "number_of_blocks"
+    SYNC_COMPLETE = "sync_complete"
 
 
 KeyedElement: TypeAlias = Tuple[MessageProperty, Type[SerializedElement]]
@@ -319,6 +323,14 @@ class GossipTimestampFilterMessage(Message):
         return cast(U32Element, self.properties[MessageProperty.TIMESTAMP_RANGE])
 
 
+class GossipChannelIDQueryFlags(Enum):
+    CHANNEL_ANNOUNCEMENTS = 0
+    CHANNEL_UPDATES_NODE_1 = 1
+    CHANNEL_UPDATES_NODE_2 = 2
+    NODE_ANNOUNCEMENTS_NODE_1 = 3
+    NODE_ANNOUNCEMENTS_NODE_2 = 4
+
+
 class QueryShortChannelIDsMessage(Message):
     id = 261
     name = "query_short_channel_ids"
@@ -327,7 +339,7 @@ class QueryShortChannelIDsMessage(Message):
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
             (MessageProperty.CHAIN_HASH, ChainHashElement),
-            (MessageProperty.ENCODED_SHORT_CHANNEL_IDS, U16VarBytesElement),
+            (MessageProperty.ENCODED_SHORT_CHANNEL_IDS, EncodedShortChannelIdsElement),
         ]
 
     @property
@@ -336,7 +348,10 @@ class QueryShortChannelIDsMessage(Message):
 
     @property
     def encoded_short_channel_ids(self):
-        return cast(U16VarBytesElement, self.properties[MessageProperty.ENCODED_SHORT_CHANNEL_IDS])
+        return cast(
+            EncodedShortChannelIdsElement,
+            self.properties[MessageProperty.ENCODED_SHORT_CHANNEL_IDS],
+        )
 
 
 class ReplyShortChannelIDsMessage(Message):
@@ -349,3 +364,66 @@ class ReplyShortChannelIDsMessage(Message):
             (MessageProperty.CHAIN_HASH, ChainHashElement),
             (MessageProperty.FULL_INFORMATION, SingleByteElement),
         ]
+
+
+class QueryChannelRangeMessage(Message):
+    id = 263
+    name = "query_channel_range"
+
+    @classmethod
+    def features(cls) -> List[KeyedElement]:
+        return super().features() + [
+            (MessageProperty.CHAIN_HASH, ChainHashElement),
+            (MessageProperty.FIRST_BLOCK_NUM, U32Element),
+            (MessageProperty.NUMBER_OF_BLOCKS, U32Element),
+        ]
+
+    @property
+    def chain_hash(self):
+        return cast(ChainHashElement, self.properties[MessageProperty.CHAIN_HASH])
+
+    @property
+    def first_block_num(self):
+        return cast(U32Element, self.properties[MessageProperty.FIRST_BLOCK_NUM])
+
+    @property
+    def number_of_blocks(self):
+        return cast(U32Element, self.properties[MessageProperty.NUMBER_OF_BLOCKS])
+
+
+class ReplyChannelRangeMessage(Message):
+    id = 264
+    name = "reply_channel_range"
+
+    @classmethod
+    def features(cls) -> List[KeyedElement]:
+        return super().features() + [
+            (MessageProperty.CHAIN_HASH, ChainHashElement),
+            (MessageProperty.FIRST_BLOCK_NUM, U32Element),
+            (MessageProperty.NUMBER_OF_BLOCKS, U32Element),
+            (MessageProperty.SYNC_COMPLETE, SingleByteElement),
+            (MessageProperty.ENCODED_SHORT_CHANNEL_IDS, EncodedShortChannelIdsElement),
+        ]
+
+    @property
+    def chain_hash(self):
+        return cast(ChainHashElement, self.properties[MessageProperty.CHAIN_HASH])
+
+    @property
+    def first_block_num(self):
+        return cast(U32Element, self.properties[MessageProperty.FIRST_BLOCK_NUM])
+
+    @property
+    def number_of_blocks(self):
+        return cast(U32Element, self.properties[MessageProperty.NUMBER_OF_BLOCKS])
+
+    @property
+    def sync_complete(self):
+        return cast(SingleByteElement, self.properties[MessageProperty.SYNC_COMPLETE])
+
+    @property
+    def encoded_short_channel_ids(self):
+        return cast(
+            EncodedShortChannelIdsElement,
+            self.properties[MessageProperty.ENCODED_SHORT_CHANNEL_IDS],
+        )

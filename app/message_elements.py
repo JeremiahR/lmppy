@@ -211,6 +211,10 @@ class LocalFeaturesElement(U16VarBytesElement):
     pass
 
 
+class EncodedShortChannelIdsElement(U16VarBytesElement):
+    pass
+
+
 @dataclass
 class U16Element(SerializedElement):
     num_bytes: int
