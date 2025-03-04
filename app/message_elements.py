@@ -89,20 +89,17 @@ class MessageTypeElement(SerializedElement):
 
 @dataclass
 class SizedBytesElement(SerializedElement):
+    num_bytes: int
     data: bytes
 
     @classmethod
     def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
-        byteslen = int.from_bytes(data[:2], byteorder="big")
-        bytesdata = data[2 : 2 + byteslen]
-        return (cls(bytesdata), data[2 + byteslen :])
+        num_bytes = int.from_bytes(data[:2], byteorder="big")
+        bytes_data = data[2 : 2 + num_bytes]
+        return (cls(num_bytes, bytes_data), data[2 + num_bytes :])
 
     def to_bytes(self) -> bytes:
-        return self.byteslen.to_bytes(2, byteorder="big") + bytes(self.data)
-
-    @property
-    def byteslen(self) -> int:
-        return len(self.data)
+        return self.num_bytes.to_bytes(2, byteorder="big") + bytes(self.data)
 
 
 @dataclass

@@ -111,27 +111,52 @@ class PingMessage(Message):
             (ElementKey.PING_OR_PONG_BYTES, SizedBytesElement),
         ]
 
+    @property
+    def num_pong_bytes(self):
+        num_pong_bytes = cast(U16Element, self.properties[ElementKey.NUM_PONG_BYTES])  # pyright: ignore
+        return num_pong_bytes.num_bytes
+
     @classmethod
-    def create(cls, num_bytes: int, message: bytes):
+    def create(cls, num_pong_bytes: int, message: bytes):
         return PingMessage(
             id=18,
             name="ping",
             properties={
                 ElementKey.TYPE: MessageTypeElement(id=18, name="ping"),
-                ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=num_bytes),
-                ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(data=message),
+                ElementKey.NUM_PONG_BYTES: U16Element(num_bytes=num_pong_bytes),
+                ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(
+                    len(message), data=message
+                ),
             },
         )
 
 
 class PongMessage(Message):
     id = 19
+    name = "pong"
 
     @classmethod
     def features(cls) -> List[KeyedElement]:
         return super().features() + [
             (ElementKey.PING_OR_PONG_BYTES, SizedBytesElement),
         ]
+
+    @property
+    def num_bytes(self):
+        return self.properties[ElementKey.PING_OR_PONG_BYTES].num_bytes  # pyright: ignore
+
+    @classmethod
+    def create_from_ping(cls, msg: PingMessage):
+        return PongMessage(
+            id=19,
+            name="pong",
+            properties={
+                ElementKey.TYPE: MessageTypeElement(id=19, name="pong"),
+                ElementKey.PING_OR_PONG_BYTES: SizedBytesElement(
+                    msg.num_pong_bytes, data=b"0" * msg.num_pong_bytes
+                ),
+            },
+        )
 
 
 class MessageDecoder:

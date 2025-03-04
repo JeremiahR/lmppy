@@ -35,8 +35,6 @@ def main():
     log_filename = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".log"
     f = open(log_filename, "a")
 
-    ping = PingMessage.create(10, bytes.fromhex("aa"))
-
     # connect to peer and log messages
     i = 0
     while True:
@@ -51,6 +49,7 @@ def main():
         f.flush()
         print(message)
         if i % 3 == 0:
+            ping = PingMessage.create(10, bytes.fromhex("aa"))
             lc.send_message(ping.to_bytes())
         i += 1
 
