@@ -238,6 +238,19 @@ class U32Element(SerializedElement):
 
 
 @dataclass
+class U64Element(SerializedElement):
+    value: int
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        value = int.from_bytes(data[:8], byteorder="big")
+        return (cls(value), data[8:])
+
+    def to_bytes(self) -> bytes:
+        return self.value.to_bytes(8, byteorder="big")
+
+
+@dataclass
 class RemainderElement(SerializedElement):
     """Special case element when we have bytes at the end that we don't handle yet."""
 
