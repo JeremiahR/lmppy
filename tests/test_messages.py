@@ -8,6 +8,7 @@ sys.path.insert(0, str(project_root))
 from app.message_decoder import MessageDecoder
 from app.message_elements import MessageTypeElement, U16Element, VarBytesElement
 from app.messages import (
+    GossipTimestampFilterMessage,
     InitMessage,
     MessageProperty,
     PingMessage,
@@ -70,6 +71,12 @@ def test_generate_ping_response():
     assert type(ping) is PingMessage
     pong = PongMessage.create_from_ping(ping)
     assert pong.num_bytes == ping.num_pong_bytes
+
+
+def test_gossip_timestamp_filter():
+    msg_hex = "010906226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910fffffffffffffffff"
+    ping = MessageDecoder.from_bytes(bytes.fromhex(msg_hex))
+    assert type(ping) is GossipTimestampFilterMessage
 
 
 def test_examples():

@@ -11,6 +11,7 @@ from app.message_elements import (
     ShortChannelIDElement,
     SignatureElement,
     U16Element,
+    U32Element,
     VarBytesElement,
 )
 
@@ -37,6 +38,8 @@ class MessageProperty(Enum):
     NODE_ID_2 = "node_id_2"
     BITCOIN_KEY_1 = "bitcoin_key_1"
     BITCOIN_KEY_2 = "bitcoin_key_2"
+    FIRST_TIMESTAMP = "first_timestamp"
+    TIMESTAMP_RANGE = "timestamp_range"
 
 
 KeyedElement: TypeAlias = Tuple[MessageProperty, Type[SerializedElement]]
@@ -198,4 +201,17 @@ class ChannelAnnouncementMessage(Message):
             (MessageProperty.NODE_ID_2, PointElement),
             (MessageProperty.BITCOIN_KEY_1, PointElement),
             (MessageProperty.BITCOIN_KEY_2, PointElement),
+        ]
+
+
+class GossipTimestampFilterMessage(Message):
+    id = 265
+    name = "gossip_timestamp_filter"
+
+    @classmethod
+    def features(cls) -> List[KeyedElement]:
+        return super().features() + [
+            (MessageProperty.CHAIN_HASH, ChainHashElement),
+            (MessageProperty.FIRST_TIMESTAMP, U32Element),
+            (MessageProperty.TIMESTAMP_RANGE, U32Element),
         ]
