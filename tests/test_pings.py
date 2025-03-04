@@ -21,9 +21,7 @@ def test_construct_ping():
         properties={
             MessageProperty.TYPE: MessageTypeElement(id=18, name="ping"),
             MessageProperty.NUM_PONG_BYTES: U16Element(num_bytes=10),
-            MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(
-                1, data=bytes.fromhex("aa")
-            ),
+            MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(1, data=bytes.fromhex("aa")),
         },
     )
     # Note: not sure if this format is correct

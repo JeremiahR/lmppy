@@ -28,9 +28,7 @@ class PeerConnection:
         self.running = True
         self.outgoing_messages = asyncio.Queue()
 
-        self.lc = connect(
-            self.local_private_key, self.node_id, self.host, port=self.port
-        )  # pyright: ignore
+        self.lc = connect(self.local_private_key, self.node_id, self.host, port=self.port)  # pyright: ignore
 
     def __str__(self):
         return f"ln://{self.node_id.to_bytes().hex()}@{self.host}:{self.port}"
@@ -43,14 +41,11 @@ class PeerConnection:
         """Asynchronously reads incoming messages"""
         while self.running:
             try:
-                data = await asyncio.to_thread(
-                    self.lc.read_message
-                )  # Run in a thread-safe way
+                data = await asyncio.to_thread(self.lc.read_message)
                 message = MessageDecoder.from_bytes(data)
                 print(f"{self} Received:", message)
-            except ValueError as e:
-                print(f"{self} Error reading message: {e}")
-                await asyncio.sleep(0.1)  # Avoid excessive looping
+            except ValueError:  # deep error in pyln that we are ignoring for now
+                await asyncio.sleep(1)  # Avoid excessive looping
 
     async def send_messages(self):
         """Sends messages from the queue"""

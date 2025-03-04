@@ -75,9 +75,7 @@ class Message:
                 id: int = el.id
                 name: str = el.name
         if len(chunked) > 0:
-            properties[MessageProperty.REMAINDER], chunked = (
-                RemainderElement.from_bytes(chunked)
-            )
+            properties[MessageProperty.REMAINDER], chunked = RemainderElement.from_bytes(chunked)
         assert len(chunked) == 0, f"Unexpected data left: {chunked}"
         return cls(id, name, properties)  # pyright: ignore
 
@@ -131,15 +129,11 @@ class InitMessage(Message):
 
     @property
     def global_features(self):
-        return cast(
-            GlobalFeaturesElement, self.properties[MessageProperty.GLOBAL_FEATURES]
-        )
+        return cast(GlobalFeaturesElement, self.properties[MessageProperty.GLOBAL_FEATURES])
 
     @property
     def local_features(self):
-        return cast(
-            LocalFeaturesElement, self.properties[MessageProperty.LOCAL_FEATURES]
-        )
+        return cast(LocalFeaturesElement, self.properties[MessageProperty.LOCAL_FEATURES])
 
 
 class PingMessage(Message):
@@ -165,9 +159,7 @@ class PingMessage(Message):
             properties={
                 MessageProperty.TYPE: MessageTypeElement(id=18, name="ping"),
                 MessageProperty.NUM_PONG_BYTES: U16Element(num_bytes=num_pong_bytes),
-                MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(
-                    len(message), data=message
-                ),
+                MessageProperty.PING_OR_PONG_BYTES: U16VarBytesElement(len(message), data=message),
             },
         )
 
@@ -184,9 +176,7 @@ class PongMessage(Message):
 
     @property
     def ping_or_pong_bytes(self):
-        return cast(
-            U16VarBytesElement, self.properties[MessageProperty.PING_OR_PONG_BYTES]
-        )
+        return cast(U16VarBytesElement, self.properties[MessageProperty.PING_OR_PONG_BYTES])
 
     @property
     def num_bytes(self):
@@ -227,6 +217,50 @@ class ChannelAnnouncementMessage(Message):
             (MessageProperty.BITCOIN_KEY_2, PointElement),
         ]
 
+    @property
+    def node_signature_1(self):
+        return cast(SignatureElement, self.properties[MessageProperty.NODE_SIGNATURE_1])
+
+    @property
+    def node_signature_2(self):
+        return cast(SignatureElement, self.properties[MessageProperty.NODE_SIGNATURE_2])
+
+    @property
+    def bitcoin_signature_1(self):
+        return cast(SignatureElement, self.properties[MessageProperty.BITCOIN_SIGNATURE_1])
+
+    @property
+    def bitcoin_signature_2(self):
+        return cast(SignatureElement, self.properties[MessageProperty.BITCOIN_SIGNATURE_2])
+
+    @property
+    def channel_features(self):
+        return cast(U16VarBytesElement, self.properties[MessageProperty.CHANNEL_FEATURES])
+
+    @property
+    def chain_hash(self):
+        return cast(ChainHashElement, self.properties[MessageProperty.CHAIN_HASH])
+
+    @property
+    def short_channel_id(self):
+        return cast(ShortChannelIDElement, self.properties[MessageProperty.SHORT_CHANNEL_ID])
+
+    @property
+    def node_id_1(self):
+        return cast(PointElement, self.properties[MessageProperty.NODE_ID_1])
+
+    @property
+    def node_id_2(self):
+        return cast(PointElement, self.properties[MessageProperty.NODE_ID_2])
+
+    @property
+    def bitcoin_key_1(self):
+        return cast(PointElement, self.properties[MessageProperty.BITCOIN_KEY_1])
+
+    @property
+    def bitcoin_key_2(self):
+        return cast(PointElement, self.properties[MessageProperty.BITCOIN_KEY_2])
+
 
 class GossipTimestampFilterMessage(Message):
     id = 265
@@ -240,6 +274,18 @@ class GossipTimestampFilterMessage(Message):
             (MessageProperty.TIMESTAMP_RANGE, U32Element),
         ]
 
+    @property
+    def chain_hash(self):
+        return cast(ChainHashElement, self.properties[MessageProperty.CHAIN_HASH])
+
+    @property
+    def first_timestamp(self):
+        return cast(U32Element, self.properties[MessageProperty.FIRST_TIMESTAMP])
+
+    @property
+    def timestamp_range(self):
+        return cast(U32Element, self.properties[MessageProperty.TIMESTAMP_RANGE])
+
 
 class QueryShortChannelIDsMessage(Message):
     id = 261
@@ -251,6 +297,14 @@ class QueryShortChannelIDsMessage(Message):
             (MessageProperty.CHAIN_HASH, ChainHashElement),
             (MessageProperty.ENCODED_SHORT_CHANNEL_IDS, U16VarBytesElement),
         ]
+
+    @property
+    def chain_hash(self):
+        return cast(ChainHashElement, self.properties[MessageProperty.CHAIN_HASH])
+
+    @property
+    def encoded_short_channel_ids(self):
+        return cast(U16VarBytesElement, self.properties[MessageProperty.ENCODED_SHORT_CHANNEL_IDS])
 
 
 class ReplyShortChannelIDsMessage(Message):
